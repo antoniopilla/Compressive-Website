@@ -14,9 +14,13 @@ import {
   sha256,
   svgWithMetadata,
 } from '../tests/fixtures/builders.js';
-import { chooseFiles, download, makeImage, prepare, setPrintSize, startOver, withExifOrientation } from './helpers.js';
+import { chooseFiles, download, makeImage, openPrintCheck, prepare, setPrintSize, startOver, withExifOrientation } from './helpers.js';
 
 const SCREENS = 'test-results/screens';
+
+/** Page backgrounds from the design tokens in src/styles/global.css. */
+const LIGHT_BACKGROUND = 'rgb(246, 247, 251)';
+const DARK_BACKGROUND = 'rgb(13, 17, 23)';
 
 /** Network requests and console errors seen during the current test. */
 let requests = [];
@@ -87,7 +91,7 @@ test('applies a saved theme before the first render', async ({ page, baseURL }) 
   await page.goto(baseURL);
   await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked();
   expect(await page.evaluate(() => window.__themeAtFirstRender)).toBe('dark');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(20, 26, 51)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK_BACKGROUND);
 });
 
 test('protected vectors download byte-for-byte', async ({ page }) => {
@@ -368,49 +372,16 @@ test('works with the keyboard alone', async ({ page, browserName }) => {
   expect(event.suggestedFilename()).toBe('logo.eps');
 });
 
-test('the command prompt finds tools and opens the matching picker', async ({ page }) => {
-  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
-  const output = page.getByTestId('prompt-output');
-  const input = prompt.getByRole('textbox', { name: 'Command' });
-
-  // On first load it welcomes the visitor and runs /help by itself.
-  await expect(output).toContainText('Welcome to Compressive.');
-  await expect(output).toContainText('Start fresh');
-
-  await prompt.getByRole('button', { name: /^\/png/ }).click();
-  await expect(input).toBeDisabled();
-  await expect(output).toContainText('PNG compressor ready.');
-  await expect(input).toBeEnabled();
-  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), output.getByRole('button', { name: /Choose a PNG/ }).click()]);
-  expect(chooser.isMultiple()).toBe(false);
-  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toBe('.png');
-  await chooser.setFiles({ name: 'logo.png', mimeType: 'image/png', buffer: Buffer.from(pngBytes({ width: 40, height: 40 })) });
-  await expect(page.getByText('Image compression')).toBeVisible();
-
-  await input.fill('can you make my scan.pdf smaller?');
-  await input.press('Enter');
-  await expect(output).toContainText('Sounds like a job for /pdf (Shrink a PDF).');
-
-  await input.fill('/nope');
-  await input.press('Enter');
-  await expect(output).toContainText('Unknown command: /nope');
-  await expect(output).toContainText("Try /help to see what's available.");
-
-  await input.fill('/clear');
-  await input.press('Enter');
-  await expect(output).toContainText('All clear. Ready for your next command.');
-  await expect(output.locator('p')).toHaveCount(1);
-
-  const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  await prompt.getByRole('button', { name: 'Switch theme' }).click();
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(before);
-});
-
 test('hero tool buttons open the right picker and the print check', async ({ page }) => {
   const tools = page.getByRole('list', { name: 'Tools' });
   const selected = page.getByRole('list', { name: 'Selected files' }).getByRole('listitem');
 
-  let [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Zip files' }).click()]);
+  let [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#tools').getByRole('button', { name: 'Choose files' }).click()]);
+  expect(chooser.isMultiple()).toBe(true);
+  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toContain('.pdf');
+  await chooser.setFiles([]);
+
+  [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Zip files' }).click()]);
   expect(chooser.isMultiple()).toBe(true);
   await chooser.setFiles([
     { name: 'a.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svgWithMetadata()) },
@@ -430,31 +401,88 @@ test('hero tool buttons open the right picker and the print check', async ({ pag
   await expect(page.getByLabel(/^Width/)).toBeFocused();
 });
 
-test('reduced motion shows prompt results instantly', async ({ page, baseURL }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(baseURL);
-  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
-  const output = page.getByTestId('prompt-output');
-  await expect(output).toContainText('Start fresh');
-  expect(await prompt.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-  await prompt.getByRole('button', { name: /^\/pdf/ }).click();
-  await expect(output).toContainText('PDF compressor ready.', { timeout: 1000 });
-  await expect(prompt.getByText('Working…')).toHaveCount(0);
+test('the main navigation marks the current section and jumps to each one', async ({ page }) => {
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  const link = (name) => nav.getByRole('link', { name, exact: true });
+  await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
+  // Sections below the fold wait to ease in until they are scrolled to.
+  await expect(page.locator('#privacy')).toHaveAttribute('data-reveal', 'pending');
+
+  await link('Privacy').click();
+  await expect(page.getByRole('heading', { name: 'Privacy', level: 2 })).toBeInViewport();
+  await expect(link('Privacy')).toHaveAttribute('aria-current', 'location');
+  await expect(link('Tools')).not.toHaveAttribute('aria-current');
+  await expect(page.locator('#privacy')).toHaveAttribute('data-reveal', 'shown');
+
+  await link('Compress').click();
+  await expect(link('Compress')).toHaveAttribute('aria-current', 'location');
+  await expect(page.getByRole('heading', { name: 'Compress your files' })).toBeInViewport();
+
+  // The footer repeats the key links and leads back to the top.
+  const footer = page.getByRole('navigation', { name: 'Footer' });
+  await expect(footer.getByRole('link', { name: 'Limits' })).toHaveAttribute('href', '#limits');
+  await page.getByRole('link', { name: 'Back to top' }).click();
+  await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
+
+  // The radios are visually hidden; people click the option's label.
+  const themeOption = (name) => page.locator('label').filter({ has: page.getByRole('radio', { name }) });
+  await themeOption('Dark').click();
+  await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked();
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK_BACKGROUND);
+  await themeOption('Light').click();
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT_BACKGROUND);
 });
 
-test('the command prompt stacks its sidebar above the terminal on phones', async ({ page, baseURL }) => {
+test('phones get a bottom navigation bar with thumb-sized links', async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(baseURL);
-  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
-  const sidebar = prompt.getByRole('group', { name: 'Pick a command' });
-  const input = prompt.getByRole('textbox', { name: 'Command' });
-  const [sidebarBox, inputBox] = await Promise.all([sidebar.boundingBox(), input.boundingBox()]);
-  expect(sidebarBox.y + sidebarBox.height).toBeLessThanOrEqual(inputBox.y);
-  // Descriptions are hidden visually on phones but stay available to screen readers.
-  expect((await prompt.getByText('See every command', { exact: true }).boundingBox()).width).toBeLessThanOrEqual(1);
-  await prompt.getByRole('button', { name: /^\/clear/ }).click();
-  await expect(page.getByTestId('prompt-output')).toContainText('All clear.');
+  // Only one main navigation is shown at a time: the bottom bar on phones.
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  await expect(nav).toHaveCount(1);
+  const bar = await nav.boundingBox();
+  expect(Math.round(bar.y + bar.height)).toBe(812);
+  for (const link of await nav.getByRole('link').all()) {
+    const box = await link.boundingBox();
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  await nav.getByRole('link', { name: 'How it works' }).click();
+  await expect(nav.getByRole('link', { name: 'How it works' })).toHaveAttribute('aria-current', 'location');
+
+  // The page reserves room for the bar, so it never covers the last links.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('aria-current', 'location');
+  const backToTop = await page.getByRole('link', { name: 'Back to top' }).boundingBox();
+  expect(backToTop.y + backToTop.height).toBeLessThanOrEqual(bar.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+});
+
+test('reduced motion shows every section at once, without movement', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(baseURL);
+  await expect(page.locator('[data-reveal="pending"]')).toHaveCount(0);
+  expect(await page.locator('#privacy').evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
+  const durations = await page
+    .getByRole('button', { name: 'Compress PNG' })
+    .evaluate((element) => getComputedStyle(element).transitionDuration.split(',').map(parseFloat));
+  expect(durations.every((seconds) => seconds < 0.001)).toBe(true);
+});
+
+test('print size fields explain mistakes inline and confirm a valid size', async ({ page }) => {
+  await chooseFiles(page, [{ name: 'poster.psd', buffer: psdBytes({ width: 3000, height: 2000 }) }]);
+  await openPrintCheck(page);
+  const width = page.getByLabel(/^Width/);
+  const height = page.getByLabel(/^Height/);
+  await width.fill('0');
+  await expect(width).toHaveAttribute('aria-invalid', 'true');
+  await expect(width).toHaveAccessibleDescription('Enter a print width greater than zero.');
+  await expect(height).not.toHaveAttribute('aria-invalid');
+
+  await width.fill('6');
+  await height.fill('2');
+  await expect(width).not.toHaveAttribute('aria-invalid');
+  await expect(page.getByRole('status').filter({ hasText: 'Checking sharpness' })).toHaveText(/^Checking sharpness for 6 × 2 \w+\.$/);
 });
 
 for (const colorScheme of ['light', 'dark']) {
@@ -481,7 +509,7 @@ for (const colorScheme of ['light', 'dark']) {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(0);
       const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(background).toBe(colorScheme === 'dark' ? 'rgb(20, 26, 51)' : 'rgb(238, 242, 255)');
+      expect(background).toBe(colorScheme === 'dark' ? DARK_BACKGROUND : LIGHT_BACKGROUND);
       await mkdir(SCREENS, { recursive: true });
       await page.screenshot({ path: `${SCREENS}/${colorScheme}-${viewport.width}.png`, fullPage: true });
     });

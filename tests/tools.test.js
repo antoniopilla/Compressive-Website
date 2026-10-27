@@ -1,41 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { interpretRequest, TOOLS } from '../src/ui/tools.js';
+import { TOOLS } from '../src/ui/tools.js';
+import { ACCEPT } from '../src/ui/files.js';
 
-const toolFor = (text) => interpretRequest(text)?.tool?.id ?? null;
-
-describe('interpretRequest', () => {
-  it('finds tools from file types named in plain language', () => {
-    expect(toolFor('compress my png')).toBe('png');
-    expect(toolFor('make holiday.JPEG smaller')).toBe('jpg');
-    expect(toolFor('shrink this pdf please')).toBe('pdf');
-    expect(toolFor('webp')).toBe('webp');
-    expect(toolFor('zip these up')).toBe('zip');
-    expect(toolFor('will it look ok printed?')).toBe('print');
-  });
-
-  it('prefers a named file type over looser hints', () => {
-    // "logo" hints at PNG, but the request names a JPG.
-    expect(toolFor('my logo.jpg is too big')).toBe('jpg');
-    expect(toolFor('compress my logo')).toBe('png');
-    expect(toolFor('I have many photos')).toBe('jpg');
-  });
-
-  it('recognises file types that are kept unchanged', () => {
-    expect(interpretRequest('compress my svg')).toEqual({ keptType: 'svg' });
-    expect(interpretRequest('zip my svg files')).toEqual({ tool: TOOLS.find((tool) => tool.id === 'zip') });
-  });
-
-  it('returns null when nothing matches', () => {
-    expect(interpretRequest('hello there')).toBeNull();
-  });
-
-  it('gives every tool a command, label, accent and output', () => {
+describe('TOOLS', () => {
+  it('gives every tool a label, a hint and either a picker or the print check', () => {
     for (const tool of TOOLS) {
-      expect(tool.command).toMatch(/^\/[a-z]+$/);
       expect(tool.label).toBeTruthy();
-      expect(['sky', 'amber', 'coral', 'violet', 'mint']).toContain(tool.accent);
-      expect(tool.output.length).toBeGreaterThan(0);
+      expect(tool.hint).toBeTruthy();
       expect(tool.action === 'print' || typeof tool.accept === 'string').toBe(true);
     }
+    expect(new Set(TOOLS.map((tool) => tool.id)).size).toBe(TOOLS.length);
+  });
+
+  it('opens single-file pickers for compressors and a multi-file picker for zipping', () => {
+    const byId = Object.fromEntries(TOOLS.map((tool) => [tool.id, tool]));
+    expect(byId.png).toMatchObject({ accept: '.png', multiple: false, replace: true });
+    expect(byId.jpg).toMatchObject({ accept: '.jpg,.jpeg', multiple: false, replace: true });
+    expect(byId.pdf).toMatchObject({ accept: '.pdf', multiple: false, replace: true });
+    expect(byId.zip).toMatchObject({ accept: ACCEPT, multiple: true, replace: false });
+    expect(byId.print.action).toBe('print');
   });
 });

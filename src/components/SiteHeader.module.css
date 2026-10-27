@@ -1,45 +1,48 @@
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  border-bottom: 1px solid var(--line);
-  background: var(--window);
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  animation: enter var(--duration-slow) var(--ease-out) both;
 }
 
 .inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   max-width: var(--content-max);
+  min-height: var(--header-height);
   margin: 0 auto;
-  padding: 10px var(--gutter);
+  padding: var(--space-2) var(--gutter);
 }
 
 .brand {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
-  color: var(--text);
-  font-size: 1.05rem;
-  font-weight: 800;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   text-decoration: none;
+}
+
+.brand:hover {
+  color: var(--color-text);
 }
 
 .mark {
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: var(--space-8);
+  height: var(--space-8);
 }
 
 .markTile {
-  fill: var(--sky-ink);
+  fill: var(--color-primary);
 }
 
 .markArrows {
   fill: none;
-  stroke: var(--on-accent);
+  stroke: var(--color-on-primary);
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -50,44 +53,95 @@
   letter-spacing: -0.01em;
 }
 
+/* Main navigation: shown from tablet width up; phones use the bottom bar. */
+.nav {
+  display: none;
+  flex: 1;
+  justify-content: center;
+}
+
+.navList {
+  display: flex;
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.navLink:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.navLink[aria-current] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
 .theme {
   display: inline-flex;
-  margin: 0;
-  padding: 3px;
-  border: 0;
-  border-radius: var(--radius-chip);
-  background: var(--chip);
+  flex: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
 }
 
 .themeOption {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 6px 10px;
-  border-radius: var(--radius-chip);
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: var(--space-1);
+  min-width: var(--control-height);
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.themeOption:hover {
+  color: var(--color-text);
 }
 
 .themeOption[data-checked] {
-  background: var(--window);
-  color: var(--text);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-border-strong);
+}
+
+/* Micro-interaction: the chosen theme's icon turns once. */
+.themeOption[data-checked] .themeIcon {
+  animation: pop var(--duration-base) var(--ease-out);
 }
 
 .themeOption:has(input:focus-visible) {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--color-focus);
   outline-offset: 1px;
 }
 
 /* Browsers without :has() (such as Firefox before 121) still get a visible focus ring. */
 @supports not selector(:has(*)) {
   .themeOption:focus-within {
-    outline: 2px solid var(--focus);
+    outline: 2px solid var(--color-focus);
     outline-offset: 1px;
   }
 }
@@ -96,7 +150,34 @@
   display: none;
 }
 
-@media (min-width: 560px) {
+/* The smallest phones: a step down in brand size keeps the gutter clear. */
+@media (max-width: 359px) {
+  .brand {
+    font-size: var(--text-md);
+  }
+}
+
+@media (min-width: 768px) {
+  .inner {
+    gap: var(--space-4);
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .nav {
+    display: flex;
+  }
+
+  .theme {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 1024px) {
   .themeLabel {
     display: inline;
   }

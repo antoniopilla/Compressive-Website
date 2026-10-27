@@ -1,6 +1,6 @@
 import { Ban, CircleAlert, FileArchive, FileImage, FileText, Layers, LoaderCircle, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
 import { formatBytes } from '../engine/index.js';
-import { primaryActionLabel, ROUTE_ACCENTS, ROUTE_LABELS } from '../ui/labels.js';
+import { primaryActionLabel, ROUTE_LABELS } from '../ui/labels.js';
 import styles from './PreparePanel.module.css';
 
 const ROUTE_ICONS = {
@@ -34,7 +34,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
   return (
     <div className={styles.panel}>
       {plan && plan.route !== 'idle' ? (
-        <div className={styles.plan} data-route={plan.route} style={{ '--accent': `var(--${ROUTE_ACCENTS[plan.route] ?? 'sky'})` }}>
+        <div className={styles.plan} data-route={plan.route}>
           <span className={styles.planIcon} aria-hidden="true">
             {plan.route === 'invalid' ? <CircleAlert size={20} /> : <RouteIcon size={20} />}
           </span>
@@ -93,7 +93,8 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
         <div className={styles.actions}>
           <button
             type="button"
-            className="btn btn-primary btn-lg"
+            // Once a result is ready, Download is the main action and this one steps back.
+            className={status === 'ready' ? 'btn btn-secondary' : 'btn btn-primary btn-lg'}
             onClick={status === 'canceled' || status === 'failed' ? onRetry : onPrepare}
             disabled={Boolean(disabledReason) || !ready}
             aria-describedby={disabledReason ? 'prepare-hint' : undefined}

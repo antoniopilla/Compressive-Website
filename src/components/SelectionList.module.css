@@ -4,48 +4,50 @@
 
 .list {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   list-style: none;
 }
 
-/* Each row has a 5px coloured edge for its file type, like the prompt's commands. */
 .row {
-  --edge: var(--sky);
+  --tile: var(--color-primary-soft);
+  --tile-ink: var(--color-primary);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: 12px;
-  padding: 12px 12px 12px 14px;
-  border-left: 5px solid var(--edge);
-  border-radius: var(--radius-card);
-  background: var(--sidebar);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  animation: enter var(--duration-base) var(--ease-out) both;
 }
 
 .row[data-category='vector'] {
-  --edge: var(--mint);
+  --tile: var(--color-accent-soft);
+  --tile-ink: var(--color-accent);
 }
 
-.row[data-category='pdf'] {
-  --edge: var(--coral);
-}
-
+.row[data-category='pdf'],
 .row[data-category='psd'] {
-  --edge: var(--violet);
+  --tile: var(--color-secondary-soft);
+  --tile-ink: var(--color-secondary);
 }
 
 .row[data-invalid] {
-  --edge: var(--coral);
-  background: var(--coral-soft);
+  --tile: var(--color-surface);
+  --tile-ink: var(--color-error);
+  border-color: var(--color-error);
+  background: var(--color-error-soft);
 }
 
 .icon {
   display: inline-grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  background: var(--window);
-  color: var(--edge);
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+  border-radius: var(--radius-sm);
+  background: var(--tile);
+  color: var(--tile-ink);
 }
 
 .main {
@@ -53,26 +55,26 @@
 }
 
 .name {
-  font-weight: 650;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
   overflow-wrap: anywhere;
   word-break: break-word;
-  line-height: 1.35;
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 2px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .status {
   display: grid;
-  gap: 4px;
-  margin-top: 6px;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .status:empty {
@@ -85,17 +87,17 @@
 .health {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  font-size: 0.86rem;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
 }
 
 .pending {
   align-items: center;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 .error {
-  color: var(--coral-ink);
+  color: var(--color-error);
 }
 
 .error svg {
@@ -104,13 +106,13 @@
 }
 
 .note {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 .actions {
   display: flex;
-  gap: 2px;
-  margin: -6px -6px 0 0;
+  gap: var(--space-1);
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) 0 0;
 }
 
 @media (max-width: 440px) {
@@ -120,6 +122,6 @@
 
   .actions {
     grid-column: 2;
-    margin: 0 0 0 -10px;
+    margin: 0 0 0 calc(-1 * var(--space-2));
   }
 }

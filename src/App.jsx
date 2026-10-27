@@ -7,6 +7,10 @@ import { readPreference, usePreference, writePreference } from './hooks/usePrefe
 import { useReducedMotion } from './hooks/useReducedMotion.js';
 import { resultHeadline } from './ui/labels.js';
 import { TOOLS } from './ui/tools.js';
+import { ACCEPT } from './ui/files.js';
+import { SECTION_IDS } from './ui/sections.js';
+import { useActiveSection } from './hooks/useActiveSection.js';
+import { useReveal } from './hooks/useReveal.js';
 import SiteHeader from './components/SiteHeader.jsx';
 import Hero from './components/Hero.jsx';
 import Panel from './components/Panel.jsx';
@@ -17,6 +21,9 @@ import PrintCheck from './components/PrintCheck.jsx';
 import PreparePanel from './components/PreparePanel.jsx';
 import ResultsPanel from './components/ResultsPanel.jsx';
 import InfoSection from './components/InfoSection.jsx';
+import PrivacySection from './components/PrivacySection.jsx';
+import BottomNav from './components/BottomNav.jsx';
+import SiteFooter from './components/SiteFooter.jsx';
 import styles from './App.module.css';
 
 const THEMES = ['light', 'dark', 'system'];
@@ -60,6 +67,8 @@ export default function App() {
   const [printOpen, setPrintOpen] = useState(false);
   const toolInputRef = useRef(null);
   const pendingToolRef = useRef(null);
+  const activeSection = useActiveSection(SECTION_IDS);
+  const workspaceReveal = useReveal();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -90,21 +99,26 @@ export default function App() {
     });
   };
 
-  /** Opens the file picker for a tool (or the print check). Runs inside the click, so browsers allow it. */
+  /** Opens the file picker with the given settings. Runs inside the click, so browsers allow it. */
+  const openPicker = (picker) => {
+    const input = toolInputRef.current;
+    if (!input) return;
+    pendingToolRef.current = picker;
+    input.accept = picker.accept;
+    input.multiple = Boolean(picker.multiple);
+    input.click();
+  };
+
+  /** Opens the file picker for a tool, or the print check. */
   const openTool = (toolId) => {
     const tool = TOOLS.find((item) => item.id === toolId);
     if (!tool) return;
-    if (tool.action === 'print') {
-      openPrintCheck();
-      return;
-    }
-    const input = toolInputRef.current;
-    if (!input) return;
-    pendingToolRef.current = tool;
-    input.accept = tool.accept;
-    input.multiple = Boolean(tool.multiple);
-    input.click();
+    if (tool.action === 'print') openPrintCheck();
+    else openPicker(tool);
   };
+
+  /** The hero's primary action: any supported files, added to the selection. */
+  const chooseAnyFiles = () => openPicker({ accept: ACCEPT, multiple: true, replace: false });
 
   const handleToolFiles = (event) => {
     const files = Array.from(event.target.files ?? []);
@@ -118,89 +132,90 @@ export default function App() {
     document.getElementById('workspace')?.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
   };
 
-  /** The prompt's "Switch theme" button flips the same preference as the header toggle. */
-  const switchTheme = () => {
-    const root = document.documentElement;
-    const isDark = root.dataset.theme
-      ? root.dataset.theme === 'dark'
-      : Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-    setTheme(isDark ? 'light' : 'dark');
-  };
-
   return (
     <div className={styles.app}>
       <a className="skip-link" href="#workspace">
         Skip to your files
       </a>
-      <SiteHeader theme={theme} onThemeChange={setTheme} />
+      <SiteHeader theme={theme} onThemeChange={setTheme} activeSection={activeSection} />
       <main id="main" className={styles.main}>
-        <Hero onTool={openTool} onSwitchTheme={switchTheme} />
+        <Hero onTool={openTool} onChooseFiles={chooseAnyFiles} />
 
-        <div id="workspace" className={styles.workspace} tabIndex={-1}>
-          <Panel
-            id="files"
-            step={1}
-            title="Add files"
-            description="One image or PDF is compressed on its own. Several files are packed into one ZIP."
-            actions={
-              selection.length ? (
-                <button type="button" className="btn btn-ghost" onClick={handleClear} disabled={processing}>
-                  <Trash2 size={16} aria-hidden="true" /> Clear all
-                </button>
-              ) : null
-            }
-          >
-            <DropZone
-              onFiles={(files, rejected) => actions.addFiles(files, { rejected })}
-              disabled={processing}
-              hasFiles={selection.length > 0}
-            />
-            <NoticeList notices={snapshot.notices} onDismiss={actions.dismissNotice} />
-            <SelectionList
-              selection={selection}
-              selectionHealth={snapshot.selectionHealth}
-              disabled={processing}
-              onRemove={actions.removeFile}
-              onReplace={actions.replaceFile}
-            />
-            <PrintCheck
-              open={printOpen}
-              onToggle={() => setPrintOpen((open) => !open)}
-              printSize={snapshot.printSize}
-              errors={snapshot.printSizeErrors}
-              onChange={actions.setPrintSize}
-              onUnitPreference={(unit) => writePreference('unit', unit)}
-            />
-          </Panel>
-
-          <Panel id="compress" step={2} title="Compress and download">
-            <PreparePanel snapshot={snapshot} onPrepare={actions.prepare} onCancel={actions.cancel} onRetry={actions.retry} />
-            {snapshot.result ? (
-              <ResultsPanel
-                snapshot={snapshot}
-                actions={{ ...actions, reset: handleReset }}
-                onDownload={downloads.download}
-                onOpenPrintCheck={openPrintCheck}
+        <section
+          id="workspace"
+          ref={workspaceReveal}
+          className={styles.workspaceSection}
+          tabIndex={-1}
+          aria-labelledby="workspace-title"
+        >
+          <div className={styles.sectionHeading}>
+            <h2 id="workspace-title" className={styles.sectionTitle}>
+              Compress your files
+            </h2>
+            <p className={styles.sectionLead}>Add your files, then compress and download them.</p>
+          </div>
+          <div className={styles.workspace}>
+            <Panel
+              id="files"
+              step={1}
+              title="Add files"
+              description="One image or PDF is compressed on its own. Several files are packed into one ZIP."
+              actions={
+                selection.length ? (
+                  <button type="button" className="btn btn-ghost" onClick={handleClear} disabled={processing}>
+                    <Trash2 size={16} aria-hidden="true" /> Clear all
+                  </button>
+                ) : null
+              }
+            >
+              <DropZone
+                onFiles={(files, rejected) => actions.addFiles(files, { rejected })}
+                disabled={processing}
+                hasFiles={selection.length > 0}
               />
-            ) : (
-              <p className={styles.placeholder}>
-                Your result appears here, with the size before and after and anything worth knowing, followed by the
-                download.
-              </p>
-            )}
-          </Panel>
-        </div>
+              <NoticeList notices={snapshot.notices} onDismiss={actions.dismissNotice} />
+              <SelectionList
+                selection={selection}
+                selectionHealth={snapshot.selectionHealth}
+                disabled={processing}
+                onRemove={actions.removeFile}
+                onReplace={actions.replaceFile}
+              />
+              <PrintCheck
+                open={printOpen}
+                onToggle={() => setPrintOpen((open) => !open)}
+                printSize={snapshot.printSize}
+                errors={snapshot.printSizeErrors}
+                onChange={actions.setPrintSize}
+                onUnitPreference={(unit) => writePreference('unit', unit)}
+              />
+            </Panel>
+
+            <Panel id="compress" step={2} title="Compress and download">
+              <PreparePanel snapshot={snapshot} onPrepare={actions.prepare} onCancel={actions.cancel} onRetry={actions.retry} />
+              {snapshot.result ? (
+                <ResultsPanel
+                  snapshot={snapshot}
+                  actions={{ ...actions, reset: handleReset }}
+                  onDownload={downloads.download}
+                  onOpenPrintCheck={openPrintCheck}
+                />
+              ) : (
+                <p className={styles.placeholder}>
+                  Your result appears here, with the size before and after and anything worth knowing, followed by the
+                  download.
+                </p>
+              )}
+            </Panel>
+          </div>
+        </section>
 
         <InfoSection />
+        <PrivacySection />
       </main>
 
-      <footer className={styles.footer}>
-        <p>
-          <strong>Compressive</strong> · Free, private file compression in your browser. No uploads, no accounts and no
-          tracking.
-        </p>
-      </footer>
-
+      <SiteFooter />
+      <BottomNav activeSection={activeSection} />
       <input
         ref={toolInputRef}
         type="file"

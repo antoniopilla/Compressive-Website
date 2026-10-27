@@ -1,0 +1,31 @@
+.privacy {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-16);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-soft);
+}
+
+.title {
+  font-size: var(--text-2xl);
+}
+
+.points {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-4);
+  list-style: none;
+}
+
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-accent);
+}

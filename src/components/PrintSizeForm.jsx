@@ -1,5 +1,5 @@
-import { ArrowLeftRight } from 'lucide-react';
-import { fromInches, RESOLUTION_POLICY, toInches, UNITS } from '../engine/index.js';
+import { ArrowLeftRight, CircleAlert, CircleCheck } from 'lucide-react';
+import { describePrintSize, fromInches, resolvePrintSize, RESOLUTION_POLICY, toInches, UNITS } from '../engine/index.js';
 import styles from './PrintSizeForm.module.css';
 
 /** Common print sizes. Selecting one fills both fields and switches to its unit. */
@@ -45,7 +45,10 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
     onChange({ unit: preset.unit, width: String(preset.width), height: String(preset.height) });
   };
 
-  const errorId = errors.length ? 'print-size-errors' : undefined;
+  // Each message names the edge it is about, so it can sit under that field.
+  const widthError = errors.find((error) => error.includes('width')) ?? null;
+  const heightError = errors.find((error) => error.includes('height')) ?? null;
+  const complete = resolvePrintSize(printSize).complete && !errors.length;
 
   return (
     <div className={styles.form}>
@@ -60,9 +63,14 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
             step="any"
             value={printSize.width ?? ''}
             onChange={(event) => onChange({ width: event.target.value })}
-            aria-describedby={errorId}
-            aria-invalid={errors.some((error) => error.includes('width')) || undefined}
+            aria-describedby={widthError ? 'print-width-error' : undefined}
+            aria-invalid={widthError ? true : undefined}
           />
+          {widthError ? (
+            <p id="print-width-error" className={styles.fieldError}>
+              <CircleAlert size={16} aria-hidden="true" /> {widthError}
+            </p>
+          ) : null}
         </div>
         <button type="button" className={`btn btn-ghost btn-icon ${styles.swap}`} onClick={swap} aria-label="Swap width and height" title="Swap width and height">
           <ArrowLeftRight size={18} aria-hidden="true" />
@@ -77,9 +85,14 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
             step="any"
             value={printSize.height ?? ''}
             onChange={(event) => onChange({ height: event.target.value })}
-            aria-describedby={errorId}
-            aria-invalid={errors.some((error) => error.includes('height')) || undefined}
+            aria-describedby={heightError ? 'print-height-error' : undefined}
+            aria-invalid={heightError ? true : undefined}
           />
+          {heightError ? (
+            <p id="print-height-error" className={styles.fieldError}>
+              <CircleAlert size={16} aria-hidden="true" /> {heightError}
+            </p>
+          ) : null}
         </div>
         <div className={styles.field}>
           <label htmlFor="print-unit">Unit</label>
@@ -93,13 +106,14 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
         </div>
       </div>
 
-      {errors.length ? (
-        <ul id="print-size-errors" className={styles.errors}>
-          {errors.map((error) => (
-            <li key={error}>{error}</li>
-          ))}
-        </ul>
-      ) : null}
+      <p className={styles.success} role="status">
+        {complete ? (
+          <>
+            <CircleCheck size={18} aria-hidden="true" className={styles.successIcon} />
+            Checking sharpness for {describePrintSize(printSize)}.
+          </>
+        ) : null}
+      </p>
 
       <div className={styles.presets} role="group" aria-label="Common print sizes">
         <span className={styles.presetsLabel}>Common sizes:</span>

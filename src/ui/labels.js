@@ -13,16 +13,6 @@ export const ROUTE_LABELS = Object.freeze({
   invalid: 'Needs attention',
 });
 
-/** Accent colour used for each route's edge and icon. */
-export const ROUTE_ACCENTS = Object.freeze({
-  'protected-passthrough': 'mint',
-  'zip-originals': 'violet',
-  'image-compress': 'sky',
-  'pdf-rewrite': 'coral',
-  'psd-passthrough': 'violet',
-  invalid: 'coral',
-});
-
 export const CATEGORY_LABELS = Object.freeze({
   vector: 'Vector',
   raster: 'Image',

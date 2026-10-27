@@ -1,107 +1,136 @@
 .form {
   display: grid;
-  gap: 14px;
+  gap: var(--space-4);
 }
 
 .fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: end;
-  gap: 10px;
+  align-items: start;
+  gap: var(--space-3);
 }
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .field label {
-  font-size: 0.9rem;
-  font-weight: 650;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .field input,
 .field select {
   width: 100%;
-  min-height: 46px;
-  padding: 10px 12px;
-  border: 2px solid transparent;
-  border-radius: var(--radius-card);
-  background: var(--chip);
-  color: var(--text);
-  font-family: var(--font-mono);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--duration-fast) var(--ease-out);
 }
 
-.field input:focus-visible,
-.field select:focus-visible {
-  outline: 2px solid var(--sky);
-  outline-offset: 2px;
+.field input:hover,
+.field select:hover {
+  border-color: var(--color-primary);
 }
 
 .field input[aria-invalid='true'] {
-  border-color: var(--coral);
+  border-color: var(--color-error);
+}
+
+.fieldError {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.fieldError svg {
+  flex: none;
+  margin-top: 2px;
 }
 
 .field:last-child {
   grid-column: 1 / -1;
 }
 
+/* Align the swap button with the inputs, below their labels. */
 .swap {
-  margin-bottom: 1px;
+  margin-top: calc(var(--text-sm) * 1.6 + var(--space-2));
 }
 
-.errors {
-  color: var(--coral-ink);
-  font-size: 0.88rem;
-  list-style: none;
+.success {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-success);
+  font-weight: var(--weight-semibold);
+}
+
+.success:empty {
+  display: none;
+}
+
+.successIcon {
+  flex: none;
+  animation: pop var(--duration-base) var(--ease-out) both;
 }
 
 .presets {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .presetsLabel {
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .preset {
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 0;
-  border-radius: var(--radius-chip);
-  background: var(--chip);
-  color: var(--text);
-  font-size: 0.85rem;
-  font-weight: 650;
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .preset:hover {
-  background: var(--chip-hover);
+  transform: translateY(var(--hover-lift));
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .presetSize {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 500;
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
 }
 
 .policy {
-  padding: 12px 14px;
-  border-radius: var(--radius-card);
-  background: var(--sidebar);
-  color: var(--muted);
-  font-size: 0.86rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .policy strong {
-  color: var(--text);
+  color: var(--color-text);
 }
 
 @media (min-width: 560px) {
@@ -111,5 +140,11 @@
 
   .field:last-child {
     grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preset:hover {
+    transform: none;
   }
 }

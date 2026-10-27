@@ -1,116 +1,169 @@
 .hero {
   display: grid;
-  gap: 28px;
-  padding: 36px 0 8px;
+  gap: var(--space-10);
+  padding-top: var(--space-10);
 }
 
-.top {
-  display: grid;
-  gap: 24px;
+/* Page-load entrance: content fades and slides up, in reading order. */
+.intro,
+.toolsBlock,
+.promises {
+  animation: enter var(--duration-slow) var(--ease-out) both;
 }
 
-.copy {
+.toolsBlock {
+  animation-delay: 60ms;
+}
+
+.promises {
+  animation-delay: 120ms;
+}
+
+.intro {
   display: grid;
-  gap: 16px;
-  min-width: 0;
+  gap: var(--space-4);
+  max-width: var(--content-narrow);
 }
 
 .kicker {
   justify-self: start;
-  padding: 4px 12px;
-  border-radius: var(--radius-chip);
-  background: var(--mint-soft);
-  color: var(--mint-ink);
-  font-size: 0.88rem;
-  font-weight: 700;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
 }
 
 .title {
-  max-width: 18ch;
-  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-size: var(--text-display);
   letter-spacing: -0.025em;
 }
 
 .lead {
   max-width: 58ch;
-  color: var(--muted);
-  font-size: 1.08rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  font-weight: var(--weight-semibold);
+}
+
+.toolsBlock {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.toolsTitle {
+  font-size: var(--text-xl);
 }
 
 .tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-3);
   list-style: none;
 }
 
+/* Tool cards: the same card style as the rest of the site, lifting 2px on hover. */
 .tool {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 16px 8px 12px;
-  border: 0;
-  border-left: 5px solid var(--accent);
-  border-radius: var(--radius-card);
-  background: var(--window);
-  color: var(--text);
-  font-weight: 650;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: calc(var(--icon-tile) + 2 * var(--space-4));
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
   cursor: pointer;
   transition:
-    transform 150ms ease,
-    background-color 150ms ease;
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .tool:hover {
-  transform: translateY(-2px);
-  background: var(--chip);
+  transform: translateY(var(--hover-lift));
+  border-color: var(--color-primary);
+}
+
+.tool:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .toolIcon {
-  color: var(--accent);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.toolText {
+  display: grid;
+  min-width: 0;
+}
+
+.toolLabel {
+  font-weight: var(--weight-bold);
+}
+
+.toolHint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .promises {
   display: grid;
-  gap: 10px;
-  align-content: end;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-3);
   list-style: none;
 }
 
 .promise {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--radius-window);
-  background: var(--window);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
 }
 
 .promiseIcon {
   flex: none;
   margin-top: 2px;
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 .promiseTitle {
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
 .promiseText {
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-@media (min-width: 1024px) {
-  .top {
-    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-    align-items: end;
-  }
+  color: var(--color-text-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tool:hover {
+  .tool:hover,
+  .tool:active {
     transform: none;
   }
 }

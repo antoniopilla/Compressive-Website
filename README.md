@@ -1,6 +1,6 @@
 # Compressive
 
-Compressive is a free, private file compressor that runs **entirely in the visitor's browser**. Visitors pick a tool (Compress PNG, Compress JPG, Compress WebP, Shrink a PDF, Zip files, Check print sharpness), or drop files, or ask the command prompt ("make my photo.jpg smaller"):
+Compressive is a free, private file compressor that runs **entirely in the visitor's browser**. Visitors pick a tool (Compress PNG, Compress JPG, Compress WebP, Shrink a PDF, Zip files, Check print sharpness), or simply drop files in:
 
 **Pick a tool or drop files → Compress → review the result → Download.**
 
@@ -14,11 +14,14 @@ Compressive compresses only where that is safe. Vector and Photoshop files are n
 
 ## Design
 
-The interface follows `animated-flat-design-prompt.md`: flat windows with 14px corners, no shadows or gradients, the brief's light and dark palettes as CSS variables (`src/styles/global.css`), the system monospace stack for commands, and sentence case throughout.
+The interface is flat and lightly animated: solid surfaces with 1px borders, no shadows or gradients, sentence case throughout, and one design-token system in `src/styles/global.css` (colours, type scale, 4px spacing steps, radii, control sizes and motion).
 
-- **Command prompt** (`src/components/CommandPrompt.jsx`): an animated terminal window in the hero. It has a title bar with three dots and a "Switch theme" button wired to the site's theme setting, a "Pick a command" sidebar (5px coloured edges, 4px hover shift), and an output pane. Entrance, typing (35 ms per character), braille spinner, line-by-line output (180 ms apart) and the blinking cursor follow the brief; with reduced motion, results appear instantly. Instead of the brief's sample Claude Code commands, the prompt's commands are Compressive's tools: `/help`, `/png`, `/jpg`, `/webp`, `/pdf`, `/zip`, `/print` and `/clear`. Plain-text requests are matched to a tool, and each answer ends with a button that opens the right file picker.
-- **Editing commands**: tool texts, accents, picker settings and matching keywords live in `src/ui/tools.js`; the command list and aliases are the data at the top of `CommandPrompt.jsx`.
-- **Contrast**: the brief's light-mode sky, amber, mint and coral are a little below WCAG AA (4.07–4.45:1) for small text, so text and button fills use slightly darker "ink" shades (`--sky-ink`, …). The brief's exact colours are kept for dots, edges and borders. Dark mode uses the brief's colours unchanged; every pairing passes 4.5:1.
+- **Palette**: a calm blue primary (`#2456e8` light, `#7ea4ff` dark) for actions and the current place, a violet secondary, and a teal accent for "kept exactly" outcomes, on cool neutral backgrounds. Success, warning, error and info each have a strong shade for text and icons and a soft shade for panels. Every text pairing passes WCAG AA (4.5:1) in both themes. The theme switch offers Light, Dark and Auto (follows the device).
+- **Type**: the system font stack, with a fluid display size for the main heading and a fixed scale (`--text-xs` … `--text-2xl`) everywhere else.
+- **Navigation**: the page has four sections: Tools, Compress, How it works and Privacy. A sticky header nav (tablet and up) and a bottom bar (phones, 64px tall, 44px+ targets) both mark the section on screen with `aria-current="location"`. The footer repeats the links, adds Limits, and has a Back to top link. A skip link jumps straight to the files.
+- **Finding things**: all six tools sit as labelled cards in the first screen, and "Choose files" is the one primary action. There is no search, because a single page with six visible tools doesn't need one.
+- **Motion**: the header and hero ease in on load (320 ms, staggered), lower sections fade up once as they scroll into view, buttons and cards lift 2px on hover (140 ms; not on touch screens), the print check opens in 240 ms, and finished results pop a checkmark. Only `transform` and `opacity` animate, so nothing shifts the layout. With reduced motion, everything appears at once and scrolling jumps instead of gliding.
+- **Forms**: print-size fields show errors under the field they belong to (`aria-invalid`, `aria-describedby`) and confirm a valid size in a status message.
 
 There is no backend, database, cloud storage, login, payment, API key or analytics. Selected files never leave the device.
 
@@ -63,9 +66,9 @@ src/
     inspect/              Read-only inspection: signatures, raster headers, ICC, PDF scan, vector artboards
     tasks/                zip-task.js (JSZip), image-task.js (browser-image-compression), pdf-task.js (pdf-lib)
   workers/                zip.worker.js, image.worker.js, pdf.worker.js (thin entry points)
-  hooks/                  React adapter: useFileStudio, useDownloads, usePreference, useReducedMotion
-  components/             Interface (CSS Modules): Hero, CommandPrompt, Panel, DropZone, PrintCheck, …
-  ui/                     Tool definitions (tools.js), interface labels and drag-and-drop helpers
+  hooks/                  React adapter: useFileStudio, useDownloads, usePreference, useReducedMotion, useActiveSection (scrollspy), useReveal (scroll reveal)
+  components/             Interface (CSS Modules): SiteHeader, BottomNav, Hero, Panel, DropZone, PrintCheck, InfoSection, PrivacySection, SiteFooter, …
+  ui/                     Tool definitions (tools.js), page sections (sections.js), interface labels and drag-and-drop helpers
   styles/global.css       Design tokens, light/dark themes, base styles
 tests/                    Vitest suites + generated fixtures (tests/fixtures/builders.js)
 e2e/                      Playwright suites
@@ -159,7 +162,7 @@ Effective PPI is calculated from pixel dimensions and the entered print size, wi
 ## Testing
 
 - `npm run test` covers routing (including casing, MIME ambiguity and PDF-typed AI files), validation, filename sanitising and duplicates, PPI maths and units, header probes (orientation, transparency, animation, ICC, bit depth), image decision rules, ZIP payload preservation by SHA-256, compression policy, cancellation, the archive ceiling, verification failure, PDF fixtures (text, vector grid, paths, page boxes, rotation, incremental revisions, indirect lengths, encrypted, signed, PDF/X, PDF 2.0, malformed, ambiguous), the worker protocol (results, errors, stale messages, timeouts, cancellation, failed start vs crash), task-runner fallbacks, the controller lifecycle (cancel, stale results, removal during inspection, acknowledgement invalidation, retry, reset, dispose), StrictMode adapter cleanup, object-URL revocation and drop-zone behaviour.
-- `npm run test:e2e` builds for production and drives Chromium, Firefox and WebKit against `vite preview`. WebKit exercises the Safari path, where images are processed on the page instead of in a worker. It covers the command prompt (auto-run `/help`, typed and clicked commands, plain-text requests, unknown commands, `/clear`, the theme switch, the 375px stacked layout and reduced motion), the hero tool buttons opening the right picker, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation, PNG transparency, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, drag-and-drop, keyboard-only use, worker chunks loading under the production CSP, and no horizontal overflow at 320–1366 px in light and dark modes.
+- `npm run test:e2e` builds for production and drives Chromium, Firefox and WebKit against `vite preview`. WebKit exercises the Safari path, where images are processed on the page instead of in a worker. It covers the navigation (the current section marked while scrolling, the footer links, Back to top, the theme switch), the phone bottom bar (44px targets, never covering the page), reduced motion, inline print-size errors, the hero's Choose files and tool buttons opening the right picker, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation, PNG transparency, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, drag-and-drop, keyboard-only use, worker chunks loading under the production CSP, and no horizontal overflow at 320–1366 px in light and dark modes.
 - Fixtures are generated in code (`tests/fixtures/builders.js`); no customer artwork is committed. Keep private test files in `fixtures/private/`, which Git ignores.
 
 ## Known limitations

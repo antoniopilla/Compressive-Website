@@ -1,42 +1,42 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   max-width: 100%;
-  padding: 3px 10px;
-  border-radius: var(--radius-chip);
-  font-size: 0.82rem;
-  font-weight: 650;
-  line-height: 1.4;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
   font-variant-numeric: tabular-nums;
 }
 
 .badge[data-size='sm'] {
-  padding: 2px 8px;
-  font-size: 0.78rem;
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
 }
 
 .badge[data-status='meets-target'] {
-  background: var(--mint-soft);
-  color: var(--mint-ink);
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 .badge[data-status='below-target'] {
-  background: var(--sky-soft);
-  color: var(--sky-ink);
+  background: var(--color-info-soft);
+  color: var(--color-info);
 }
 
 .badge[data-status='warning'] {
-  background: var(--amber-soft);
-  color: var(--amber-ink);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 
 .badge[data-status='critical'] {
-  background: var(--coral-soft);
-  color: var(--coral-ink);
+  background: var(--color-error-soft);
+  color: var(--color-error);
 }
 
 .badge[data-status='unknown'] {
-  background: var(--chip);
-  color: var(--muted);
+  background: var(--color-surface-3);
+  color: var(--color-text-muted);
 }
