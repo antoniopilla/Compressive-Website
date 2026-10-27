@@ -30,7 +30,7 @@ export const HEALTH = Object.freeze({
 });
 
 /** Higher rank = worse. Unknown has no rank because it cannot be compared. */
-export const SEVERITY_RANK = Object.freeze({
+const SEVERITY_RANK = Object.freeze({
   [HEALTH.MEETS_TARGET]: 0,
   [HEALTH.BELOW_TARGET]: 1,
   [HEALTH.WARNING]: 2,
@@ -117,7 +117,7 @@ export function compareAspect(dimensions, resolved, tolerance = RESOLUTION_POLIC
 }
 
 /** @param {number} ratio */
-export function formatRatio(ratio) {
+function formatRatio(ratio) {
   return ratio >= 1 ? `${formatNumber(ratio, 2)}:1` : `1:${formatNumber(1 / ratio, 2)}`;
 }
 

@@ -49,7 +49,7 @@ export function formatDimensions(dimensions) {
  * @param {number | null | undefined} ppi
  * @returns {number | null}
  */
-export function floorPpi(ppi) {
+function floorPpi(ppi) {
   if (ppi == null || !Number.isFinite(ppi)) return null;
   return ppi < 10 ? Math.floor(ppi * 10) / 10 : Math.floor(ppi);
 }

@@ -15,7 +15,7 @@ import { CanceledError, StudioError } from './errors.js';
 import { runInWorker } from './worker-client.js';
 
 /** Worker entry points. Vite bundles each one (and its dependencies) separately. */
-export const DEFAULT_WORKER_FACTORIES = Object.freeze({
+const DEFAULT_WORKER_FACTORIES = Object.freeze({
   zip: () => new Worker(new URL('../workers/zip.worker.js', import.meta.url), { type: 'module', name: 'compressive-zip' }),
   image: () =>
     new Worker(new URL('../workers/image.worker.js', import.meta.url), { type: 'module', name: 'compressive-image' }),
@@ -23,14 +23,14 @@ export const DEFAULT_WORKER_FACTORIES = Object.freeze({
 });
 
 /** Task implementations for the main-thread fallback, loaded only when needed. */
-export const DEFAULT_TASK_LOADERS = Object.freeze({
+const DEFAULT_TASK_LOADERS = Object.freeze({
   zip: () => import('./tasks/zip-task.js').then((module) => module.buildZipArchive),
   image: () => import('./tasks/image-task.js').then((module) => module.compressImage),
   pdf: () => import('./tasks/pdf-task.js').then((module) => module.rewritePdf),
 });
 
 /** Worker failures that a main-thread run can work around. */
-const FALLBACK_CODES = new Set(['worker-failed-to-start', 'worker-decode-unsupported', 'worker-canvas-unsupported']);
+const FALLBACK_CODES = new Set(['worker-failed-to-start', 'worker-canvas-unsupported']);
 
 /**
  * @typedef {object} RunOptions

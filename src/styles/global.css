@@ -71,7 +71,6 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --space-12: 48px;
   --space-16: 64px;
 
   /* Shape and size */
@@ -95,7 +94,6 @@
   --duration-slow: 320ms;
   --duration-menu: 240ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --lift: -2px;
   --hover-lift: var(--lift);
   --enter-distance: 12px;

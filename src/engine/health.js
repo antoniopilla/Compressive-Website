@@ -61,7 +61,7 @@ function vectorAspectMessage(printSize, artboard) {
  * @param {typeof RESOLUTION_POLICY} policy
  * @returns {FileHealth}
  */
-export function assessFileOutcome(file, printSize, policy = RESOLUTION_POLICY) {
+function assessFileOutcome(file, printSize, policy = RESOLUTION_POLICY) {
   if (!file.assessable || !file.originalDimensions) {
     return {
       measurable: false,

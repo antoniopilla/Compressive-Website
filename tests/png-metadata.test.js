@@ -1,30 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { crc32 } from 'node:zlib';
 import { stripPngMetadata } from '../src/engine/tasks/png-metadata.js';
-import { pngBytes } from './fixtures/builders.js';
-
-function chunk(type, data) {
-  const bytes = new Uint8Array(12 + data.length);
-  const view = new DataView(bytes.buffer);
-  view.setUint32(0, data.length);
-  bytes.set([...type].map((character) => character.charCodeAt(0)), 4);
-  bytes.set(data, 8);
-  view.setUint32(8 + data.length, crc32(bytes.subarray(4, 8 + data.length)) >>> 0);
-  return bytes;
-}
+import { concat, pngBytes, pngChunk } from './fixtures/builders.js';
 
 /** Inserts chunks just before IEND. */
-function withChunks(png, ...chunks) {
-  const iend = png.length - 12;
-  const parts = [png.subarray(0, iend), ...chunks, png.subarray(iend)];
-  const output = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
-  let position = 0;
-  for (const part of parts) {
-    output.set(part, position);
-    position += part.length;
-  }
-  return output;
-}
+const withChunks = (png, ...chunks) => concat(png.subarray(0, png.length - 12), ...chunks, png.subarray(png.length - 12));
 
 function chunkTypes(png) {
   const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
@@ -52,12 +32,12 @@ describe('stripPngMetadata', () => {
   it('removes text, EXIF, time and private chunks but keeps colour and print size', () => {
     const png = withChunks(
       pngBytes({ width: 4, height: 4, icc: new Uint8Array(64).fill(3) }),
-      chunk('tEXt', text('Software', 'Some Editor')),
-      chunk('iTXt', text('Comment', 'hello')),
-      chunk('eXIf', new Uint8Array(16)),
-      chunk('tIME', new Uint8Array(7)),
-      chunk('pHYs', new Uint8Array([0, 0, 0x0b, 0x13, 0, 0, 0x0b, 0x13, 1])),
-      chunk('prVt', new Uint8Array(32)),
+      pngChunk('tEXt', text('Software', 'Some Editor')),
+      pngChunk('iTXt', text('Comment', 'hello')),
+      pngChunk('eXIf', new Uint8Array(16)),
+      pngChunk('tIME', new Uint8Array(7)),
+      pngChunk('pHYs', new Uint8Array([0, 0, 0x0b, 0x13, 0, 0, 0x0b, 0x13, 1])),
+      pngChunk('prVt', new Uint8Array(32)),
     );
     const { bytes, removed } = stripPngMetadata(png);
     expect(chunkTypes(bytes)).toEqual(['IHDR', 'iCCP', 'IDAT', 'pHYs', 'IEND']);
@@ -96,7 +76,7 @@ describe('stripPngMetadata', () => {
   });
 
   it('refuses a PNG that ends in the middle of a chunk', () => {
-    const png = withChunks(pngBytes({ width: 2, height: 2 }), chunk('tEXt', text('a', 'b')));
+    const png = withChunks(pngBytes({ width: 2, height: 2 }), pngChunk('tEXt', text('a', 'b')));
     expect(() => stripPngMetadata(png.subarray(0, png.length - 20))).toThrow(RangeError);
   });
 });

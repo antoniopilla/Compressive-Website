@@ -70,7 +70,7 @@ export function describeIccProfile(bytes) {
 }
 
 /** @param {string | null} description */
-export function isSrgbDescription(description) {
+function isSrgbDescription(description) {
   return Boolean(description) && /\bs ?rgb\b|iec\s*61966-2[.-]1/i.test(description);
 }
 
@@ -79,7 +79,7 @@ export function isSrgbDescription(description) {
  * this size so a malformed or hostile PNG cannot expand into gigabytes of
  * memory on the page.
  */
-export const MAX_INFLATED_ICC_BYTES = 4_000_000;
+const MAX_INFLATED_ICC_BYTES = 4_000_000;
 
 /**
  * Inflates zlib-compressed data (PNG iCCP) with the native DecompressionStream.

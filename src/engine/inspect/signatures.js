@@ -37,7 +37,7 @@ export function detectFormat(bytes) {
  *
  * @param {Uint8Array} bytes
  */
-export function looksLikeSvg(bytes) {
+function looksLikeSvg(bytes) {
   const text = decodeTextHead(bytes);
   // TextDecoder already strips a UTF-8 byte-order mark; trimStart() removes a stray one too.
   const trimmed = text.trimStart();

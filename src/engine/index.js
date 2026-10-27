@@ -1,9 +1,9 @@
 /**
- * Compressive processing engine — public API.
+ * Compressive processing engine: what the interface uses.
  *
- * Framework-independent vanilla JavaScript. The React interface talks to the
- * engine only through `createFileStudio()`; everything else is exported for
- * tests and for reuse in other front ends.
+ * Framework-independent vanilla JavaScript. The React interface drives the
+ * engine only through `createFileStudio()`, and uses the policies, units and
+ * formatters below for display. Tests import the engine's modules directly.
  *
  * Typical use:
  *
@@ -17,30 +17,7 @@
  *   studio.dispose();                             // release everything
  */
 
-export { createFileStudio, STATUS, PHASE_LABELS } from './studio.js';
-export { planRoute, categorize, ROUTES, CATEGORIES } from './router.js';
-export { inspectFile, evaluateMime } from './validation.js';
-export { executePlan, ASSESSMENT_LIMITATIONS } from './pipeline.js';
-export { assessResult, assessEntry, assessFileOutcome } from './health.js';
-export {
-  assessDimensions,
-  classifyPpi,
-  compareAspect,
-  computePpi,
-  compareAssessments,
-  HEALTH,
-  SEVERITY_RANK,
-} from './resolution.js';
-export { UNITS, DEFAULT_UNIT, toInches, fromInches, resolvePrintSize, describePrintSize } from './units.js';
-export { createTaskRunner } from './task-runner.js';
-export { StudioError, CanceledError, isCanceledError } from './errors.js';
-export {
-  IMAGE_POLICY,
-  LIMITS,
-  PDF_POLICY,
-  RESOLUTION_POLICY,
-  PROTECTED_VECTOR_EXTENSIONS,
-  SUPPORTED_EXTENSIONS,
-  ZIP_POLICY,
-} from './policy.js';
-export { formatBytes, formatDimensions, formatDuration, formatPercent, formatPpi, formatPpiNumber, floorPpi, formatNumber } from './format.js';
+export { createFileStudio } from './studio.js';
+export { UNITS, toInches, fromInches, resolvePrintSize, describePrintSize } from './units.js';
+export { IMAGE_POLICY, LIMITS, RESOLUTION_POLICY } from './policy.js';
+export { formatBytes, formatDimensions, formatDuration, formatNumber, formatPercent, formatPpi } from './format.js';

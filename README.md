@@ -48,7 +48,7 @@ Requirements: Node.js `^22.13.0 || >=24.0.0` (declared in `package.json` `engine
 ```
 src/
   engine/                 Framework-independent processing engine (vanilla ES modules + JSDoc)
-    index.js              Public API (createFileStudio and helpers)
+    index.js              What the interface imports (createFileStudio, policies, units, formatters)
     studio.js             Stateful controller: selection, lifecycle, jobs, acknowledgements
     router.js             Dynamic File Router (routing precedence documented in the file)
     validation.js         Extension, empty-file, MIME plausibility, signature and header checks
@@ -56,7 +56,8 @@ src/
     health.js             Resolution health for selections and results
     resolution.js         PPI maths, thresholds, aspect checks, threshold crossings
     units.js              ft / in / cm / mm / m conversions and print-size validation
-    image-policy.js       Pure decision rules for image compression
+    image-policy.js       Pure decision rules for image compression, including which quality to try next
+    visual-check.js       SSIM comparison that decides whether a compressed copy looks the same
     filenames.js          Extensions, safe/unique ZIP entry names, download names
     policy.js             Every limit and policy value, in one place
     task-runner.js        Worker-or-main-thread selection with bounded fallbacks
@@ -65,7 +66,8 @@ src/
     worker-protocol.js    Message protocol documentation
     errors.js, format.js
     inspect/              Read-only inspection: signatures, raster headers, ICC, PDF scan, vector artboards
-    tasks/                zip-task.js (JSZip), image-task.js (browser-image-compression), pdf-task.js (pdf-lib)
+    tasks/                zip-task.js (JSZip), image-task.js (decode and quality search), codecs.js (MozJPEG, libwebp, OxiPNG),
+                          png-metadata.js, pdf-task.js (pdf-lib)
   workers/                zip.worker.js, image.worker.js, pdf.worker.js (thin entry points)
   hooks/                  React adapter: useFileStudio, useDownloads, usePreference, useReducedMotion, useActiveSection (scrollspy), useReveal (scroll reveal)
   components/             Interface (CSS Modules): SiteHeader, BottomNav, Hero, Panel, DropZone, PrintCheck, InfoSection, PrivacySection, SiteFooter, …

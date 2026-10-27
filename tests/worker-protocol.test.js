@@ -153,7 +153,7 @@ describe('worker protocol', () => {
 
 describe('task runner fallbacks', () => {
   const unsupportedWorker = () => new FakeWorker(async () => {
-    throw new StudioError('worker-decode-unsupported', 'No decode in workers.');
+    throw new StudioError('worker-canvas-unsupported', 'No canvas in workers.');
   });
   const taskLoaders = {
     zip: async () => async () => ({ where: 'main' }),

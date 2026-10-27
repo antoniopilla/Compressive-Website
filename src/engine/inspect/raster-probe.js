@@ -49,7 +49,7 @@ const tooLong = () => corrupt('The image header is unusually long, which usually
  * @param {number} tiffStart Offset of the "II"/"MM" byte-order mark.
  * @returns {number | null}
  */
-export function parseTiffOrientation(bytes, tiffStart) {
+function parseTiffOrientation(bytes, tiffStart) {
   if (bytes.length < tiffStart + 8) return null;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const order = view.getUint16(tiffStart);

@@ -41,7 +41,7 @@ const EARLIEST_ZIP_DATE = Date.UTC(1980, 0, 2);
  * @param {string} extension
  * @returns {'STORE'|'DEFLATE'}
  */
-export function compressionFor(extension) {
+function compressionFor(extension) {
   return ZIP_POLICY.storeExtensions.includes(extension) ? 'STORE' : 'DEFLATE';
 }
 
@@ -137,7 +137,7 @@ export async function buildZipArchive(payload, context) {
  * @param {ZipEntryInput[]} entries
  * @param {import('../worker-protocol.js').TaskContext} context
  */
-export async function verifyArchive(archive, entries, context) {
+async function verifyArchive(archive, entries, context) {
   context.onProgress({ phase: 'verifying', fraction: 0.8 });
   const loaded = await JSZip.loadAsync(archive, { checkCRC32: true, createFolders: false });
   const mismatches = [];

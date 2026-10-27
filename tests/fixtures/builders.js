@@ -56,7 +56,8 @@ export function iccProfile(description, colorSpace = 'RGB ') {
 
 /* ------------------------------------------------------------------ PNG */
 
-function pngChunk(type, data = new Uint8Array(0)) {
+/** A PNG chunk (length, type, data and CRC). */
+export function pngChunk(type, data = new Uint8Array(0)) {
   const typeBytes = ascii(type);
   const body = concat(typeBytes, data);
   return concat(u32be(data.length), body, u32be(crc32(body) >>> 0));

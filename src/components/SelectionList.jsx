@@ -55,7 +55,6 @@ export default function SelectionList({ selection, selectionHealth, disabled, on
         tabIndex={-1}
         aria-hidden="true"
         onChange={handleReplaceChange}
-        data-testid="replace-input"
       />
     </div>
   );

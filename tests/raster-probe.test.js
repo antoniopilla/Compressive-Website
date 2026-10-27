@@ -1,22 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_HEADER_STEPS, probeRaster } from '../src/engine/inspect/raster-probe.js';
-import { crc32, deflateSync } from 'node:zlib';
+import { deflateSync } from 'node:zlib';
 import { createBlobReader, readBytes } from '../src/engine/inspect/bytes.js';
 import { describeIccProfile, inflateZlib } from '../src/engine/inspect/icc.js';
-import { concat, iccProfile, jpegHeaderBytes, makeFile, pngBytes, psdBytes, webpBytes } from './fixtures/builders.js';
+import { concat, iccProfile, jpegHeaderBytes, makeFile, pngBytes, pngChunk, psdBytes, webpBytes } from './fixtures/builders.js';
 
 const blob = (bytes) => makeFile(bytes, 'x');
-
-/** A PNG chunk with a valid CRC. */
-function chunk(type, data) {
-  const bytes = new Uint8Array(12 + data.length);
-  const view = new DataView(bytes.buffer);
-  view.setUint32(0, data.length);
-  bytes.set([...type].map((character) => character.charCodeAt(0)), 4);
-  bytes.set(data, 8);
-  view.setUint32(8 + data.length, crc32(bytes.subarray(4, 8 + data.length)) >>> 0);
-  return bytes;
-}
 
 /** Inserts chunks straight after a PNG's 25-byte IHDR chunk. */
 const afterHeader = (png, chunks) => concat(png.subarray(0, 33), ...chunks, png.subarray(33));
@@ -32,7 +21,7 @@ describe('header scanning', () => {
   });
 
   it('reads a header of thousands of chunks in a handful of reads', async () => {
-    const png = afterHeader(pngBytes({ width: 4, height: 4 }), Array.from({ length: 5000 }, () => chunk('zzZz', [1])));
+    const png = afterHeader(pngBytes({ width: 4, height: 4 }), Array.from({ length: 5000 }, () => pngChunk('zzZz', [1])));
     let reads = 0;
     const counting = new (class extends Blob {
       slice(...args) {
@@ -45,7 +34,7 @@ describe('header scanning', () => {
   });
 
   it('treats an unusually long header as damage', async () => {
-    const png = afterHeader(pngBytes({ width: 4, height: 4 }), Array.from({ length: MAX_HEADER_STEPS + 1 }, () => chunk('zzZz', [1])));
+    const png = afterHeader(pngBytes({ width: 4, height: 4 }), Array.from({ length: MAX_HEADER_STEPS + 1 }, () => pngChunk('zzZz', [1])));
     await expect(probeRaster(blob(png), 'png')).rejects.toMatchObject({ code: 'corrupt-image', message: expect.stringMatching(/unusually long/) });
 
     // JPEG markers may be preceded by 0xFF fill bytes: a few are fine, a flood is not.

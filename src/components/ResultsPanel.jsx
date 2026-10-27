@@ -81,11 +81,11 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
         <dl className={styles.stats}>
           <div className={styles.stat}>
             <dt>Before</dt>
-            <dd data-testid="bytes-before">{formatBytes(totals.originalBytes)}</dd>
+            <dd>{formatBytes(totals.originalBytes)}</dd>
           </div>
           <div className={styles.stat}>
             <dt>After</dt>
-            <dd data-testid="bytes-after">{formatBytes(totals.preparedBytes)}</dd>
+            <dd>{formatBytes(totals.preparedBytes)}</dd>
           </div>
           <div className={styles.stat}>
             <dt>{savedLabel}</dt>

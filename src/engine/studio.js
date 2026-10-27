@@ -43,7 +43,7 @@ export const STATUS = Object.freeze({
 });
 
 /** Customer-facing labels for progress phases reported by tasks. */
-export const PHASE_LABELS = Object.freeze({
+const PHASE_LABELS = Object.freeze({
   starting: 'Starting',
   packaging: 'Packaging your files',
   verifying: 'Checking the result',

@@ -16,7 +16,7 @@ export const UNITS = Object.freeze({
 });
 
 /** Largest accepted print edge: 1,000 ft (12,000 in). */
-export const MAX_PRINT_EDGE_INCHES = 12_000;
+const MAX_PRINT_EDGE_INCHES = 12_000;
 
 /**
  * @param {number} value
