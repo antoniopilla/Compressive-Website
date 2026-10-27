@@ -17,6 +17,9 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@jsquash/jpeg": "1.6.0",
+    "@jsquash/oxipng": "2.3.0",
+    "@jsquash/webp": "1.5.0",
     "browser-image-compression": "2.0.2",
     "jszip": "^3.10.1",
     "lucide-react": "^1.61.0",

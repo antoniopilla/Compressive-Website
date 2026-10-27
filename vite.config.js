@@ -30,9 +30,14 @@ function readPagesHeaders() {
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    // The jSquash encoders find their .wasm files next to their own modules;
+    // pre-bundling them for the dev server would move the code away from them.
+    exclude: ['@jsquash/jpeg', '@jsquash/webp', '@jsquash/oxipng'],
+  },
   worker: {
     // ES module workers keep each worker's dependencies in its own chunk, so
-    // JSZip, pdf-lib and browser-image-compression load only when needed.
+    // JSZip, pdf-lib and the image encoders load only when needed.
     format: 'es',
   },
   build: {

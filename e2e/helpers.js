@@ -47,6 +47,33 @@ export async function makeImage(page, { width, height, type = 'image/jpeg', qual
   return Buffer.from(base64, 'base64');
 }
 
+/**
+ * Encodes a smooth, photo-like test image (soft shading, like a sky or a
+ * studio backdrop after a camera's noise reduction) with the same WebAssembly
+ * encoders the site uses, run here in Node. Every browser gets identical
+ * input, including WebKit, which cannot create WebP files itself.
+ *
+ * Per-pixel grain is deliberately left out: quality 75 smooths it away, which
+ * the visual check rightly counts as a visible change.
+ *
+ * @param {{ type: 'image/jpeg' | 'image/webp', width: number, height: number, quality: number }} options
+ */
+export async function encodePhoto({ type, width, height, quality }) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const shade = Math.sin(x / (width / 3)) * Math.cos(y / (height / 2));
+      const ripple = 6 * Math.sin(x / 37 + y / 53);
+      data.set([150 + 70 * shade + ripple, 120 + 50 * shade + ripple, 200 - 40 * shade - ripple, 255], (y * width + x) * 4);
+    }
+  }
+  const codec = type === 'image/jpeg' ? { path: 'jpeg/encode.js', wasm: 'jpeg/codec/enc/mozjpeg_enc.wasm' } : { path: 'webp/encode.js', wasm: 'webp/codec/enc/webp_enc_simd.wasm' };
+  const root = new URL('../node_modules/@jsquash/', import.meta.url);
+  const encoder = await import(new URL(codec.path, root).href);
+  await encoder.init(await WebAssembly.compile(await readFile(new URL(codec.wasm, root))));
+  return Buffer.from(await encoder.default({ data, width, height }, { quality }));
+}
+
 /** Inserts an EXIF APP1 segment with the given orientation after the JFIF header. */
 export function withExifOrientation(jpeg, orientation) {
   const exif = concat(Uint8Array.from('Exif\0\0', (c) => c.charCodeAt(0)), tiffOrientation(orientation));

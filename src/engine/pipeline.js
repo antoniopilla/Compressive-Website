@@ -351,6 +351,8 @@ function describeImageFailure(error) {
     case 'worker-crashed':
       return 'The background process stopped unexpectedly, which often means the device ran out of memory. Your original is kept unchanged.';
     case 'decode-failed':
+    case 'encoder-unavailable':
+    case 'verification-failed':
     case 'background-unsupported':
     case 'workers-unavailable':
       return `${error.message} Your original is kept unchanged.`;
@@ -426,6 +428,20 @@ async function prepareImage(entry, context) {
       `This browser could only process this image at ${formatDimensions({ width: encoded.decodedWidth, height: encoded.decodedHeight })}, smaller than its real size, so it was not resized silently. Your original is kept unchanged. Try a desktop browser.`,
     );
   }
+  if (encoded.status === 'looks-different') {
+    return keepOriginal(
+      'looks-different',
+      `Compressing this image would visibly change it: even at quality ${IMAGE_POLICY.qualities.at(-1)}, fine detail or colour edges differed from your original. Your original is kept unchanged.`,
+    );
+  }
+  if (encoded.status === 'no-saving') {
+    return keepOriginal(
+      'no-useful-saving',
+      encoded.tried
+        ? `Lower qualities visibly changed this image, and at quality ${encoded.quality} the copy would already be as large as your original. Your original is kept unchanged.`
+        : 'This image is already well compressed: a copy that looks the same would not be any smaller. Your original is kept unchanged.',
+    );
+  }
 
   // Verify the actual output type and dimensions from the encoded bytes.
   const detected = detectFormat(await readBytes(encoded.blob, 0, 64));
@@ -452,26 +468,36 @@ async function prepareImage(entry, context) {
       type: detectedType,
     },
     expectedType: mimeType,
+    method: describeEncoding(encoded),
     policy: IMAGE_POLICY,
   });
   if (decision.outcome === 'kept-original') return keepOriginal(decision.reasonCode, decision.message, decision.constraints);
 
   const prepared = new File([encoded.blob], preparedFileName(entry.name), { type: mimeType, lastModified: Date.now() });
+  const lossy = encoded.encoding === 'mozjpeg' || encoded.encoding === 'webp';
   const notes = [...base.notes];
-  if (encoded.encoding === 'png-palette') {
+  if (lossy) {
+    const { similarity } = encoded;
+    const needed = IMAGE_POLICY.lookalike;
     notes.push(
-      `Every colour was preserved: the image uses ${formatNumber(encoded.colorCount)} colours, within the encoder's ${formatNumber(IMAGE_POLICY.pngPaletteColors)}-colour budget at quality ${IMAGE_POLICY.quality}.`,
+      `Visual check: ${similarityPercent(similarity.luma)} similar overall, ${similarityPercent(similarity.chroma)} in colour and ${similarityPercent(similarity.worstArea)} in the least similar area (it needs ${similarityPercent(needed.luma)}, ${similarityPercent(needed.chroma)} and ${similarityPercent(needed.worstArea)}).`,
     );
-  } else if (encoded.encoding === 'png-lossless') {
-    notes.push(`Re-encoded losslessly, because this PNG has more colours than quality ${IMAGE_POLICY.quality} would keep.`);
+    if (encoded.quality > IMAGE_POLICY.qualities[0]) {
+      notes.push(`Quality ${encoded.quality} was needed: lower qualities visibly changed fine detail or colour edges.`);
+    }
   }
-  if (probe.format === 'webp' && probe.lossless) notes.push('The source was lossless WebP; the prepared copy is lossy WebP.');
+  if (encoded.encoding === 'webp' && probe.lossless) notes.push('The source was lossless WebP; the prepared copy is lossy WebP.');
+  if (encoded.encoding === 'webp-lossless') notes.push('Lower qualities visibly changed the image, so it was saved as lossless WebP, like your original.');
   if (probe.format === 'jpeg' && probe.orientation !== 1) notes.push('The camera orientation was applied to the pixels.');
   if (probe.hasAlpha) notes.push('Transparency was preserved.');
-  notes.push('Metadata such as EXIF, camera details and embedded DPI is not copied to the prepared copy.');
+  if (encoded.encoding === 'oxipng-original') {
+    const removed = describeRemovedChunks(encoded.removedChunks);
+    notes.push(`${removed ? `Removed ${removed}. ` : ''}Colour information and print size (DPI) were kept.`);
+  } else {
+    notes.push('Metadata such as EXIF, camera details and embedded DPI is not copied to the prepared copy.');
+  }
   if (encoded.ranOnMainThread) notes.push('Processed on the page because this browser cannot process images in the background.');
 
-  const lossy = encoded.encoding === 'jpeg' || encoded.encoding === 'webp';
   return {
     artifact: { blob: prepared, filename: prepared.name, mimeType, size: prepared.size, kind: /** @type {const} */ ('prepared') },
     files: [
@@ -497,7 +523,8 @@ async function prepareImage(entry, context) {
       ? [
           {
             code: 'perceptual-quality',
-            message: `Quality ${IMAGE_POLICY.quality} is intended to be visually near-lossless, but it is not mathematically lossless. If fine detail matters, compare the prepared copy with your original before ordering.`,
+            message:
+              'The visual check compares every part of the image with your original, but no measurement matches every eye and screen, and the copy is not mathematically lossless. If fine detail matters, compare the prepared copy with your original before ordering.',
           },
         ]
       : [],
@@ -505,10 +532,50 @@ async function prepareImage(entry, context) {
     details: {
       encoding: encoded.encoding,
       quality: encoded.quality,
-      colorCount: encoded.colorCount,
+      similarity: encoded.similarity,
       ranOnMainThread: Boolean(encoded.ranOnMainThread),
     },
   };
+}
+
+/**
+ * How an image was encoded, in words, for the outcome message.
+ *
+ * @param {{ encoding: string, quality: number | null }} encoded
+ * @returns {{ label: string, lossless: boolean, exact: boolean }}
+ */
+function describeEncoding({ encoding, quality }) {
+  switch (encoding) {
+    case 'mozjpeg':
+      return { label: `MozJPEG at quality ${quality}`, lossless: false, exact: false };
+    case 'webp':
+      return { label: `WebP at quality ${quality}`, lossless: false, exact: false };
+    case 'webp-lossless':
+      return { label: 'lossless WebP', lossless: true, exact: false };
+    case 'oxipng-original':
+      return { label: 'OxiPNG', lossless: true, exact: true };
+    default:
+      return { label: 'OxiPNG', lossless: true, exact: false };
+  }
+}
+
+/** A similarity score as a percentage, rounded down so 99.96% never reads as 100%. */
+function similarityPercent(score) {
+  return `${formatNumber(Math.floor(score * 1000) / 10, 1)}%`;
+}
+
+/** Names the kinds of PNG metadata that were removed, or '' when none was. */
+function describeRemovedChunks(types = []) {
+  const kinds = new Set(
+    types.map((type) => {
+      if (type === 'tEXt' || type === 'zTXt' || type === 'iTXt') return 'text notes';
+      if (type === 'eXIf') return 'EXIF data';
+      if (type === 'tIME') return 'the saved-on date';
+      return 'editor data';
+    }),
+  );
+  const list = [...kinds];
+  return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : (list[0] ?? '');
 }
 
 /** @param {any} error */

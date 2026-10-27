@@ -3,9 +3,10 @@
  * canvas code so every rule is unit-tested without a browser.
  *
  * Principles:
- *  - One encode at quality 0.85. Quality is never lowered further behind the
- *    customer's back; if 0.85 cannot meet the size limit the source is kept
- *    and the conflict is explained.
+ *  - Lossy copies must pass the visual check (visual-check.js). Quality only
+ *    ever goes up from the policy's first setting to pass it, never down to
+ *    meet the size limit; if a copy that looks the same cannot meet the limit,
+ *    the source is kept and the conflict is explained.
  *  - No upscaling, aspect ratio preserved, longest edge capped at 8000 px.
  *  - Re-encoding that would visibly change the artwork in ways a browser
  *    cannot avoid (animation loss, CMYK→RGB, wide-gamut→sRGB, 16→8 bits) is
@@ -91,10 +92,12 @@ export function preflightImage(probe) {
  * @param {{ bytes: number, width: number, height: number }} input.source   Orientation-corrected source.
  * @param {{ bytes: number, width: number, height: number, type: string | null }} input.encoded
  * @param {string} input.expectedType  MIME type that should have been produced.
+ * @param {{ label: string, lossless: boolean, exact: boolean }} input.method  How the copy was encoded, e.g. "MozJPEG at quality 75";
+ *   `exact` when every pixel of the original file is kept bit for bit.
  * @param {typeof IMAGE_POLICY} [input.policy]
  * @returns {{ outcome: 'optimized'|'kept-original', reasonCode: string, message: string, constraints: ConstraintReport }}
  */
-export function decideImageOutcome({ source, encoded, expectedType, policy = IMAGE_POLICY }) {
+export function decideImageOutcome({ source, encoded, expectedType, method, policy = IMAGE_POLICY }) {
   const sourceReport = evaluateImageConstraints(source, policy);
   const encodedReport = evaluateImageConstraints(encoded, policy);
   const keep = (reasonCode, message) => ({
@@ -114,8 +117,8 @@ export function decideImageOutcome({ source, encoded, expectedType, policy = IMA
   if (encoded.bytes > policy.maxOutputBytes) {
     return keep(
       'quality-size-conflict',
-      `At quality ${policy.quality} the compressed copy is ${formatBytes(encoded.bytes)}, above the ${formatBytes(policy.maxOutputBytes)} limit. ` +
-        'Quality is never lowered further automatically. Reduce the pixel size in an image editor to meet the limit.',
+      `With ${method.label} the compressed copy is ${formatBytes(encoded.bytes)}, above the ${formatBytes(policy.maxOutputBytes)} limit. ` +
+        'Quality is never lowered to make a file fit, because the copy would then look different. Reduce the pixel size in an image editor to meet the limit.',
     );
   }
   if (!encodedReport.satisfied) {
@@ -132,12 +135,21 @@ export function decideImageOutcome({ source, encoded, expectedType, policy = IMA
     );
   }
   const resized = encoded.width !== source.width || encoded.height !== source.height;
+  const resizing = `Resized from ${formatDimensions(source)} to ${formatDimensions(encoded)} to fit within ${formatNumber(policy.maxWidth)} × ${formatNumber(policy.maxHeight)} px`;
+  let message;
+  if (method.lossless) {
+    if (resized) message = `${resizing}, then saved losslessly with ${method.label}.`;
+    else if (method.exact) message = `Optimised losslessly with ${method.label}: every pixel is unchanged.`;
+    else message = `Saved as ${method.label}: nothing visible was changed.`;
+  } else {
+    message = resized
+      ? `${resizing}, then compressed with ${method.label} and compared with the resized image: it looks the same.`
+      : `Compressed with ${method.label}, then compared with your original: it looks the same.`;
+  }
   return {
     outcome: 'optimized',
     reasonCode: resized ? 'resized-and-compressed' : 'compressed',
-    message: resized
-      ? `Resized from ${formatDimensions(source)} to ${formatDimensions(encoded)} to fit within ${formatNumber(policy.maxWidth)} × ${formatNumber(policy.maxHeight)} px, then compressed at quality ${policy.quality}.`
-      : `Compressed at quality ${policy.quality}, intended to be visually near-lossless.`,
+    message,
     constraints: encodedReport,
   };
 }

@@ -167,7 +167,10 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
           data-testid="download-primary"
         >
           <Download size={19} aria-hidden="true" />
-          {downloadLabel(result)} <span className={styles.size}>({formatBytes(result.artifact.size)})</span>
+          {/* One text run, so a long label and its size wrap together on narrow screens. */}
+          <span>
+            {downloadLabel(result)} <span className={styles.size}>({formatBytes(result.artifact.size)})</span>
+          </span>
         </button>
         {originalAvailable ? (
           <button type="button" className="btn btn-secondary" onClick={downloadOriginal} data-testid="download-original">

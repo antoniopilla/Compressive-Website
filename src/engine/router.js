@@ -20,6 +20,7 @@
  */
 
 import {
+  IMAGE_POLICY,
   LIMITED_PASSTHROUGH_EXTENSIONS,
   LIMITS,
   PDF_EXTENSIONS,
@@ -167,7 +168,11 @@ export function planRoute(entries, limits = LIMITS) {
       }
       return {
         route: ROUTES.IMAGE_COMPRESS,
-        summary: 'This image will be compressed at quality 0.85 within 8000 × 8000 px and 40 MB. Your original stays available to download.',
+        summary: `${
+          entry.extension === 'png'
+            ? 'This PNG will be optimised losslessly'
+            : 'This image will be compressed at the lowest quality that still looks the same'
+        }, within ${formatNumber(IMAGE_POLICY.maxWidth)} × ${formatNumber(IMAGE_POLICY.maxHeight)} px and ${formatBytes(IMAGE_POLICY.maxOutputBytes)}. Your original stays available to download.`,
         errors: [],
         totals,
       };

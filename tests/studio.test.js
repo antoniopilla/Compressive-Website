@@ -130,23 +130,82 @@ describe('image route decisions', () => {
     padded.set(source);
     const runner = {
       capabilities: { workers: true },
-      run: vi.fn().mockResolvedValue({ status: 'encoded', blob: encodedPng(300, 200), width: 300, height: 200, quality: 0, encoding: 'png-lossless', colorCount: null }),
+      run: vi.fn().mockResolvedValue({
+        status: 'encoded',
+        blob: encodedPng(300, 200),
+        width: 300,
+        height: 200,
+        encoding: 'oxipng-original',
+        quality: null,
+        similarity: null,
+        removedChunks: ['tEXt', 'tIME'],
+      }),
     };
     const studio = createFileStudio({ taskRunner: runner, initialPrintSize: { width: 2, height: 4 / 3, unit: 'in' } });
     await studio.addFiles([makeFile(padded, 'Logo.PNG', 'image/png')]);
     const result = await studio.prepare();
-    expect(result.files[0].outcome).toBe('optimized');
+    expect(result.files[0]).toMatchObject({ outcome: 'optimized', message: 'Optimised losslessly with OxiPNG: every pixel is unchanged.' });
+    expect(result.files[0].notes).toContain('Removed text notes and the saved-on date. Colour information and print size (DPI) were kept.');
+    expect(result.limitations).toEqual([]);
     expect(result.artifact).toMatchObject({ filename: 'Logo-prepared.PNG', mimeType: 'image/png', kind: 'prepared' });
     expect(result.constraints.satisfied).toBe(true);
-    expect(runner.run.mock.calls[0][1]).toMatchObject({ mimeType: 'image/png', policy: { quality: 0.85, maxOutputBytes: 40_000_000 } });
+    expect(runner.run.mock.calls[0][1]).toMatchObject({ mimeType: 'image/png', policy: { qualities: [75, 85, 90, 95], maxOutputBytes: 40_000_000 } });
     const original = studio.getDownload('original', result.files[0].fileId);
     expect(original.filename).toBe('Logo.PNG');
+  });
+
+  it('reports the visual check and any extra quality a lossy copy needed', async () => {
+    const source = jpegHeaderBytes({ width: 2000, height: 1000 });
+    const padded = new Uint8Array(source.length + 500_000);
+    padded.set(source);
+    const runner = {
+      capabilities: { workers: true },
+      run: vi.fn().mockResolvedValue({
+        status: 'encoded',
+        blob: new Blob([jpegHeaderBytes({ width: 2000, height: 1000 })], { type: 'image/jpeg' }),
+        width: 2000,
+        height: 1000,
+        encoding: 'mozjpeg',
+        quality: 85,
+        similarity: { luma: 0.99516, chroma: 0.99, worstArea: 0.96118 },
+      }),
+    };
+    const studio = createFileStudio({ taskRunner: runner });
+    await studio.addFiles([makeFile(padded, 'photo.jpg', 'image/jpeg')]);
+    const result = await studio.prepare();
+    expect(result.files[0]).toMatchObject({
+      outcome: 'optimized',
+      message: 'Compressed with MozJPEG at quality 85, then compared with your original: it looks the same.',
+    });
+    expect(result.files[0].notes).toEqual(
+      expect.arrayContaining([
+        'Visual check: 99.5% similar overall, 99% in colour and 96.1% in the least similar area (it needs 97%, 97% and 93%).',
+        'Quality 85 was needed: lower qualities visibly changed fine detail or colour edges.',
+        'Metadata such as EXIF, camera details and embedded DPI is not copied to the prepared copy.',
+      ]),
+    );
+    expect(result.limitations.map((limitation) => limitation.code)).toEqual(['perceptual-quality']);
+    expect(result.details).toMatchObject({ encoding: 'mozjpeg', quality: 85 });
+  });
+
+  it.each([
+    ['looks-different', { status: 'looks-different' }, /^Compressing this image would visibly change it: even at quality 95/],
+    ['no-useful-saving', { status: 'no-saving' }, /^This image is already well compressed/],
+  ])('keeps the original when the encoder reports %s', async (reasonCode, response, message) => {
+    const file = makeFile(jpegHeaderBytes({ width: 2000, height: 1000 }), 'photo.jpg', 'image/jpeg');
+    const runner = { capabilities: { workers: true }, run: vi.fn().mockResolvedValue({ width: 2000, height: 1000, ...response }) };
+    const studio = createFileStudio({ taskRunner: runner });
+    await studio.addFiles([file]);
+    const result = await studio.prepare();
+    expect(result.files[0]).toMatchObject({ outcome: 'kept-original', reasonCode });
+    expect(result.files[0].message).toMatch(message);
+    expect(result.artifact.blob).toBe(file);
   });
 
   it('refuses a prepared copy whose real dimensions differ from what the encoder reported', async () => {
     const runner = {
       capabilities: { workers: true },
-      run: vi.fn().mockResolvedValue({ status: 'encoded', blob: encodedPng(100, 50), width: 300, height: 200, quality: 0, encoding: 'png-lossless' }),
+      run: vi.fn().mockResolvedValue({ status: 'encoded', blob: encodedPng(100, 50), width: 300, height: 200, encoding: 'oxipng-original', quality: null }),
     };
     const studio = createFileStudio({ taskRunner: runner });
     await studio.addFiles([makeFile(pngBytes({ width: 300, height: 200 }), 'a.png', 'image/png')]);

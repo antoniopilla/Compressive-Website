@@ -42,23 +42,27 @@ export const SUPPORTED_EXTENSIONS = Object.freeze([
 /**
  * Smart image compression policy.
  *
- * `quality` is the single encoder setting used for JPEG and WebP. It is a
- * starting encoder setting, not a guarantee of perceptual quality, and it is
- * never lowered automatically: if the 0.85 encode cannot meet the size limit,
- * the source is preserved and the conflict is explained.
+ * JPEG (MozJPEG) and WebP (libwebp) are encoded at the first of `qualities`
+ * whose result passes the visual check in visual-check.js: every score must
+ * reach its `lookalike` minimum. Qualities only go up from the first one, so a
+ * busy or detailed image gets more quality, never less. If none passes, the
+ * source is kept. The thresholds were calibrated on photos and interface
+ * graphics: below them, enlarged crops showed smoothed grain, blocking or
+ * colour fringes on coloured text; above them, none were found. Quality 90
+ * and up also keeps full colour resolution in MozJPEG, which is what
+ * coloured text needs.
  *
- * For PNG, browser-image-compression 2.0.2 maps quality to a colour budget of
- * `4096 × quality` colours (3481 at 0.85). That budget is only applied when the
- * image already has no more colours than that, so quantisation is exact;
- * otherwise PNG is re-encoded losslessly (pixel-identical apart from the
- * premultiplied-alpha rounding browsers apply to semi-transparent pixels).
+ * PNG is optimised losslessly with OxiPNG at `pngLevel` (0–6; 2 is Squoosh's
+ * default: most of the saving in a fraction of the time), so every pixel is
+ * kept.
  */
 export const IMAGE_POLICY = Object.freeze({
-  quality: 0.85,
+  qualities: Object.freeze([75, 85, 90, 95]),
+  lookalike: Object.freeze({ luma: 0.97, chroma: 0.97, worstArea: 0.93 }),
+  pngLevel: 2,
   maxOutputBytes: 40_000_000,
   maxWidth: 8000,
   maxHeight: 8000,
-  pngPaletteColors: Math.floor(4096 * 0.85),
   /** A prepared copy must save at least this share of the source size… */
   minSavingRatio: 0.01,
   /** …and at least this many bytes, otherwise the source is kept. */
@@ -109,10 +113,10 @@ export const LIMITS = Object.freeze({
   /** Decoded-pixel budget for a single image (100 MP ≈ 400 MB as RGBA). */
   maxRasterSourcePixels: 100_000_000,
   /**
-   * Lower budget for PNG. The PNG encoder reads the pixels back from the canvas
-   * and keeps further full-size working copies, so a PNG needs roughly four
-   * RGBA buffers at once: 40 MP ≈ 160 MB each, about 650 MB in total, which
-   * stays within what typical laptops can give a single tab.
+   * Lower budget for PNG. OxiPNG decodes the image into its own memory and
+   * tries several filters, each a full-size working copy, so a PNG needs
+   * roughly four RGBA buffers at once: 40 MP ≈ 160 MB each, about 650 MB in
+   * total, which stays within what typical laptops can give a single tab.
    */
   maxPngSourcePixels: 40_000_000,
   /** Single PDF documents larger than this are not rewritten. */

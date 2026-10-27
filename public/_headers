@@ -1,8 +1,10 @@
 # Cloudflare Pages response headers (also applied by `npm run preview`).
 # connect-src 'self' means the page cannot send data to any other origin,
 # which backs up the "your files stay on your device" promise.
+# 'wasm-unsafe-eval' lets the image encoders (WebAssembly, served from this
+# site) compile. It does not allow JavaScript eval or scripts from elsewhere.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self'; img-src 'self' blob: data:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; img-src 'self' blob: data:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()

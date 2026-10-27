@@ -14,7 +14,7 @@ import {
   sha256,
   svgWithMetadata,
 } from '../tests/fixtures/builders.js';
-import { chooseFiles, download, makeImage, openPrintCheck, prepare, setPrintSize, startOver, withExifOrientation } from './helpers.js';
+import { chooseFiles, download, encodePhoto, makeImage, openPrintCheck, prepare, setPrintSize, startOver, withExifOrientation } from './helpers.js';
 
 const SCREENS = 'test-results/screens';
 
@@ -71,6 +71,8 @@ test('serves the security headers that back the privacy promise', async ({ page,
   const response = await request.get(baseURL);
   const csp = response.headers()['content-security-policy'];
   expect(csp).toContain("connect-src 'self'");
+  // WebAssembly may compile (the image encoders); JavaScript eval stays blocked.
+  expect(csp).toContain("script-src 'self' 'wasm-unsafe-eval';");
   expect(csp).toContain("worker-src 'self'");
   await expect(page.getByText('Your files stay on your device.')).toBeVisible();
 });
@@ -141,6 +143,8 @@ test('compresses a JPEG in a worker, applying camera orientation', async ({ page
   await expect(page.getByText('2,000 × 3,000 px').first()).toBeVisible();
   await prepare(page);
   await expect(page.getByText('Compressed', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
+  await expect(page.getByText(/^Visual check: [\d.]+% similar overall/)).toBeVisible();
   await expect(page.getByText('The camera orientation was applied to the pixels.')).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toBe('Camera Shot-prepared.jpg');
@@ -152,12 +156,36 @@ test('compresses a JPEG in a worker, applying camera orientation', async ({ page
   expect(original.name).toBe('Camera Shot.jpg');
   expect(sha256(original.bytes)).toBe(sha256(jpeg));
   expect(requests.some((request) => /image\.worker-[\w-]+\.js$/.test(request.url()))).toBe(true);
+  expect(requests.some((request) => /mozjpeg_enc-[\w-]+\.wasm$/.test(request.url()))).toBe(true);
+});
+
+test('a smooth photo saved at camera quality shrinks by more than half and still looks the same', async ({ page }) => {
+  const jpeg = await encodePhoto({ type: 'image/jpeg', width: 3000, height: 2000, quality: 95 });
+  await chooseFiles(page, [{ name: 'sky.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
+  await prepare(page);
+  await expect(page.getByText('Compressed with MozJPEG at quality 75, then compared with your original: it looks the same.')).toBeVisible();
+  const saved = await download(page, page.getByTestId('download-primary'));
+  expect(saved.bytes.length).toBeLessThan(jpeg.length * 0.5);
+});
+
+test('compresses a WebP with libwebp and checks the copy', async ({ page }) => {
+  const webp = await encodePhoto({ type: 'image/webp', width: 2400, height: 1600, quality: 95 });
+  await chooseFiles(page, [{ name: 'banner.webp', mimeType: 'image/webp', buffer: webp }]);
+  await prepare(page);
+  await expect(page.getByText(/^Compressed with WebP at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
+  const saved = await download(page, page.getByTestId('download-primary'));
+  expect(saved.name).toBe('banner-prepared.webp');
+  expect(saved.bytes.length).toBeLessThan(webp.length);
+  expect(await probeRaster(new Blob([saved.bytes]), 'webp')).toMatchObject({ format: 'webp', width: 2400, height: 1600 });
+  expect(requests.some((request) => /webp_enc(_simd)?-[\w-]+\.wasm$/.test(request.url()))).toBe(true);
 });
 
 test('keeps PNG transparency and colours', async ({ page }) => {
   const png = await makeImage(page, { width: 900, height: 600, type: 'image/png', alpha: true });
   await chooseFiles(page, [{ name: 'overlay.png', mimeType: 'image/png', buffer: png }]);
   await prepare(page);
+  await expect(page.getByText('Optimised losslessly with OxiPNG: every pixel is unchanged.')).toBeVisible();
+  expect(requests.some((request) => /squoosh_oxipng_bg-[\w-]+\.wasm$/.test(request.url()))).toBe(true);
   const saved = await download(page, page.getByTestId('download-primary'));
   const probe = await probeRaster(new Blob([saved.bytes]), 'png');
   expect(probe).toMatchObject({ width: 900, height: 600, hasAlpha: true });

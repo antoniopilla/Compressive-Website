@@ -7,12 +7,12 @@ const ROWS = [
   {
     formats: 'PNG',
     Icon: Image,
-    what: `Re-saved without visible change: transparency and colours kept, never enlarged. Images wider or taller than ${formatNumber(IMAGE_POLICY.maxWidth)} px are scaled down to fit.`,
+    what: `Optimised losslessly with OxiPNG, so every pixel, the transparency and the colours stay exactly the same; text and editor metadata are removed. Images wider or taller than ${formatNumber(IMAGE_POLICY.maxWidth)} px are scaled down to fit.`,
   },
   {
     formats: 'JPG and WebP',
     Icon: FileImage,
-    what: `Re-saved once at quality ${IMAGE_POLICY.quality}, which looks the same to most eyes but is usually much smaller. Camera rotation is fixed.`,
+    what: `Compressed with MozJPEG or WebP, starting at quality ${IMAGE_POLICY.qualities[0]}. Each copy is compared with your original area by area, and quality goes up until it looks the same; if it never does, you get your original back. Smooth photos often shrink by 75–90%; detailed or grainy ones by less. Camera rotation is fixed.`,
   },
   {
     formats: 'PDF',

@@ -42,7 +42,8 @@ export function isCanceledError(error) {
 export function looksLikeOutOfMemory(error) {
   if (error instanceof RangeError) return true;
   const message = String(/** @type {any} */ (error)?.message ?? '').toLowerCase();
-  return /out of memory|allocation|array buffer|too large|exceeds the maximum/.test(message);
+  // The last two are how WebAssembly encoders report it ("Aborted(OOM)", "Cannot enlarge memory").
+  return /out of memory|allocation|array buffer|too large|exceeds the maximum|\boom\b|enlarge memory/.test(message);
 }
 
 /**

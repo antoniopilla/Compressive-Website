@@ -20,13 +20,12 @@ const probe = (overrides = {}) => ({
 });
 
 describe('library contract (browser-image-compression 2.0.2)', () => {
-  it('exposes the helpers the single-pass encoder relies on', () => {
+  it('exposes the helpers the decoder relies on', () => {
     expect(imageCompression.version).toBe('2.0.2');
     for (const helper of [
       'drawFileInCanvas',
       'handleMaxWidthOrHeight',
       'followExifOrientation',
-      'canvasToFile',
       'cleanupCanvasMemory',
       'isAutoOrientationInBrowser',
       'getBrowserName',
@@ -35,11 +34,21 @@ describe('library contract (browser-image-compression 2.0.2)', () => {
     }
   });
 
-  it('documents the binary MB conversion the library would need', () => {
-    // browser-image-compression multiplies maxSizeMB by 1,048,576. The product's
-    // 40 MB limit is decimal, which would be ≈38.147 in library units.
-    expect(IMAGE_POLICY.maxOutputBytes / 1_048_576).toBeCloseTo(38.147, 3);
-    expect(IMAGE_POLICY.pngPaletteColors).toBe(3481);
+});
+
+describe('IMAGE_POLICY', () => {
+  it('only ever raises quality, starting from its first setting', () => {
+    expect(IMAGE_POLICY.qualities).toEqual([...IMAGE_POLICY.qualities].sort((a, b) => a - b));
+    expect(IMAGE_POLICY.qualities[0]).toBe(75);
+    expect(IMAGE_POLICY.qualities.at(-1)).toBeLessThanOrEqual(100);
+  });
+
+  it('needs every similarity score to count as looking the same', () => {
+    expect(Object.keys(IMAGE_POLICY.lookalike).sort()).toEqual(['chroma', 'luma', 'worstArea']);
+    for (const minimum of Object.values(IMAGE_POLICY.lookalike)) {
+      expect(minimum).toBeGreaterThan(0.9);
+      expect(minimum).toBeLessThan(1);
+    }
   });
 });
 
@@ -81,9 +90,27 @@ describe('decideImageOutcome', () => {
       source,
       encoded: { bytes: 2_000_000, width: 4000, height: 3000, type: 'image/jpeg' },
       expectedType: 'image/jpeg',
+      method: { label: 'MozJPEG at quality 75', lossless: false, exact: false },
     });
     expect(decision).toMatchObject({ outcome: 'optimized', reasonCode: 'compressed' });
-    expect(decision.message).toMatch(/visually near-lossless/);
+    expect(decision.message).toBe('Compressed with MozJPEG at quality 75, then compared with your original: it looks the same.');
+  });
+
+  it('says exactly what a lossless copy kept', () => {
+    const exact = decideImageOutcome({
+      source,
+      encoded: { bytes: 6_000_000, width: 4000, height: 3000, type: 'image/png' },
+      expectedType: 'image/png',
+      method: { label: 'OxiPNG', lossless: true, exact: true },
+    });
+    expect(exact.message).toBe('Optimised losslessly with OxiPNG: every pixel is unchanged.');
+    const visual = decideImageOutcome({
+      source,
+      encoded: { bytes: 6_000_000, width: 4000, height: 3000, type: 'image/webp' },
+      expectedType: 'image/webp',
+      method: { label: 'lossless WebP', lossless: true, exact: false },
+    });
+    expect(visual.message).toBe('Saved as lossless WebP: nothing visible was changed.');
   });
 
   it('keeps the source when the browser produced a different format', () => {
@@ -91,6 +118,7 @@ describe('decideImageOutcome', () => {
       source,
       encoded: { bytes: 1_000, width: 4000, height: 3000, type: 'image/png' },
       expectedType: 'image/webp',
+      method: { label: 'WebP at quality 75', lossless: false, exact: false },
     });
     expect(decision).toMatchObject({ outcome: 'kept-original', reasonCode: 'encoder-unsupported' });
     expect(decision.message).toMatch(/cannot create WEBP/);
@@ -101,9 +129,11 @@ describe('decideImageOutcome', () => {
       source: { bytes: 90_000_000, width: 8000, height: 8000 },
       encoded: { bytes: 41_000_000, width: 8000, height: 8000, type: 'image/png' },
       expectedType: 'image/png',
+      method: { label: 'OxiPNG', lossless: true, exact: false },
     });
     expect(decision).toMatchObject({ outcome: 'kept-original', reasonCode: 'quality-size-conflict' });
-    expect(decision.message).toMatch(/never lowered further/);
+    expect(decision.message).toMatch(/^With OxiPNG the compressed copy is 41 MB/);
+    expect(decision.message).toMatch(/never lowered to make a file fit/);
     expect(decision.message).toMatch(/does not meet the output limits/);
     expect(decision.constraints.satisfied).toBe(false);
   });
@@ -113,12 +143,14 @@ describe('decideImageOutcome', () => {
       source,
       encoded: { bytes: 9_950_000, width: 4000, height: 3000, type: 'image/jpeg' },
       expectedType: 'image/jpeg',
+      method: { label: 'MozJPEG at quality 75', lossless: false, exact: false },
     });
     expect(decision).toMatchObject({ outcome: 'kept-original', reasonCode: 'no-useful-saving' });
     const larger = decideImageOutcome({
       source,
       encoded: { bytes: 11_000_000, width: 4000, height: 3000, type: 'image/jpeg' },
       expectedType: 'image/jpeg',
+      method: { label: 'MozJPEG at quality 75', lossless: false, exact: false },
     });
     expect(larger.reasonCode).toBe('no-useful-saving');
   });
@@ -128,9 +160,11 @@ describe('decideImageOutcome', () => {
       source: { bytes: 3_000_000, width: 9000, height: 3000 },
       encoded: { bytes: 3_500_000, width: 8000, height: 2666, type: 'image/jpeg' },
       expectedType: 'image/jpeg',
+      method: { label: 'MozJPEG at quality 75', lossless: false, exact: false },
     });
     expect(decision).toMatchObject({ outcome: 'optimized', reasonCode: 'resized-and-compressed' });
     expect(decision.message).toMatch(/Resized from 9,000 × 3,000 px to 8,000 × 2,666 px/);
+    expect(decision.message).toMatch(/compared with the resized image: it looks the same\.$/);
   });
 
   it('rejects any upscaled output', () => {
@@ -138,6 +172,7 @@ describe('decideImageOutcome', () => {
       source,
       encoded: { bytes: 1_000_000, width: 4001, height: 3000, type: 'image/jpeg' },
       expectedType: 'image/jpeg',
+      method: { label: 'MozJPEG at quality 75', lossless: false, exact: false },
     });
     expect(decision.reasonCode).toBe('dimension-check-failed');
   });
