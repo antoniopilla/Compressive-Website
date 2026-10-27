@@ -72,9 +72,9 @@ export default function DropZone({ onFiles, disabled = false, hasFiles = false }
     >
       <UploadCloud className={styles.icon} size={hasFiles ? 26 : 36} aria-hidden="true" />
       <div className={styles.text}>
-        <p className={styles.title}>{active ? 'Drop to add these files' : hasFiles ? 'Add more files' : 'Drag your artwork here'}</p>
+        <p className={styles.title}>{active ? 'Drop to add these files' : hasFiles ? 'Add more files' : 'Drop files here'}</p>
         <p className={styles.hint} id="drop-zone-hint">
-          AI, EPS, SVG, JPG, PNG, WebP, PDF or PSD. On a phone or with a keyboard, use the button.
+          PNG, JPG, WebP, PDF, SVG, AI, EPS or PSD. On a phone or with a keyboard, use the button.
         </p>
       </div>
       <button

@@ -5,7 +5,7 @@
 }
 
 .empty {
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .plan {
@@ -13,14 +13,13 @@
   align-items: flex-start;
   gap: 12px;
   padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
+  border-left: 5px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: var(--sidebar);
 }
 
 .plan[data-route='invalid'] {
-  border-color: color-mix(in srgb, var(--critical) 45%, var(--border));
-  background: var(--critical-soft);
+  background: var(--coral-soft);
 }
 
 .planIcon {
@@ -29,19 +28,9 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-}
-
-.plan[data-route='invalid'] .planIcon {
-  background: var(--surface);
-  color: var(--critical);
-}
-
-.plan[data-route='protected-passthrough'] .planIcon {
-  background: var(--success-soft);
-  color: var(--success);
+  border-radius: 9px;
+  background: var(--window);
+  color: var(--accent);
 }
 
 .planText {
@@ -53,14 +42,15 @@
 }
 
 .planTotals {
-  color: var(--text-muted);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
   font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 .planSummary {
   margin-top: 2px;
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.93rem;
 }
 
@@ -69,7 +59,7 @@
   gap: 6px;
   margin-top: 10px;
   padding-left: 18px;
-  color: var(--critical);
+  color: var(--coral-ink);
   font-size: 0.9rem;
 }
 
@@ -85,7 +75,7 @@
 }
 
 .hint {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
@@ -98,8 +88,8 @@
 .progressHeader {
   display: flex;
   justify-content: space-between;
-  width: 100%;
   gap: 12px;
+  width: 100%;
 }
 
 .progressLabel {
@@ -110,30 +100,30 @@
 }
 
 .progressPercent {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+  color: var(--muted);
+  font-family: var(--font-mono);
 }
 
 .track {
   width: 100%;
   height: 10px;
-  border-radius: 999px;
-  background: var(--surface-3);
   overflow: hidden;
+  border-radius: var(--radius-chip);
+  background: var(--chip);
 }
 
 .bar {
   height: 100%;
   border-radius: inherit;
-  background: var(--accent);
+  background: var(--sky);
   transition: width 200ms ease;
 }
 
 .notice {
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text-muted);
+  border-radius: var(--radius-card);
+  background: var(--sidebar);
+  color: var(--muted);
   font-size: 0.92rem;
 }
 
@@ -142,9 +132,9 @@
   align-items: flex-start;
   gap: 8px;
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--critical-soft);
-  color: var(--critical);
+  border-radius: var(--radius-card);
+  background: var(--coral-soft);
+  color: var(--coral-ink);
   font-size: 0.92rem;
 }
 

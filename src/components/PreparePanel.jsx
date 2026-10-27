@@ -1,6 +1,6 @@
 import { Ban, CircleAlert, FileArchive, FileImage, FileText, Layers, LoaderCircle, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
 import { formatBytes } from '../engine/index.js';
-import { ROUTE_LABELS } from '../ui/labels.js';
+import { primaryActionLabel, ROUTE_ACCENTS, ROUTE_LABELS } from '../ui/labels.js';
 import styles from './PreparePanel.module.css';
 
 const ROUTE_ICONS = {
@@ -12,7 +12,8 @@ const ROUTE_ICONS = {
 };
 
 /**
- * Route summary, the Prepare action, progress and cancellation.
+ * Route summary, the main action (labelled for what it will do), progress and
+ * cancellation.
  *
  * @param {{ snapshot: import('../engine/studio.js').StudioSnapshot, onPrepare: () => void, onCancel: () => void, onRetry: () => void }} props
  */
@@ -26,14 +27,14 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
   let disabledReason = null;
   if (!selection.length) disabledReason = 'Choose at least one file first.';
   else if (status === 'validating' || !plan) disabledReason = 'Checking your files…';
-  else if (plan.route === 'invalid') disabledReason = 'Fix the issues above before preparing.';
+  else if (plan.route === 'invalid') disabledReason = 'Fix the issues above first.';
 
   const filesById = new Map(selection.map((entry) => [entry.id, entry]));
 
   return (
     <div className={styles.panel}>
       {plan && plan.route !== 'idle' ? (
-        <div className={styles.plan} data-route={plan.route}>
+        <div className={styles.plan} data-route={plan.route} style={{ '--accent': `var(--${ROUTE_ACCENTS[plan.route] ?? 'sky'})` }}>
           <span className={styles.planIcon} aria-hidden="true">
             {plan.route === 'invalid' ? <CircleAlert size={20} /> : <RouteIcon size={20} />}
           </span>
@@ -61,7 +62,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
           </div>
         </div>
       ) : (
-        <p className={styles.empty}>Choose files and Prepare will show you exactly what will happen to them.</p>
+        <p className={styles.empty}>Add a file and you will see exactly what happens to it before anything runs.</p>
       )}
 
       {processing && progress ? (
@@ -76,7 +77,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
           <div
             className={styles.track}
             role="progressbar"
-            aria-label="Preparation progress"
+            aria-label="Progress"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent}
@@ -96,6 +97,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
             onClick={status === 'canceled' || status === 'failed' ? onRetry : onPrepare}
             disabled={Boolean(disabledReason) || !ready}
             aria-describedby={disabledReason ? 'prepare-hint' : undefined}
+            data-testid="prepare-button"
           >
             {status === 'canceled' || status === 'failed' ? (
               <>
@@ -103,7 +105,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
               </>
             ) : (
               <>
-                <Sparkles size={18} aria-hidden="true" /> {status === 'ready' ? 'Prepare again' : 'Prepare'}
+                <Sparkles size={18} aria-hidden="true" /> {status === 'ready' ? 'Run again' : primaryActionLabel(ready ? plan.route : undefined)}
               </>
             )}
           </button>
@@ -117,13 +119,13 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
 
       {snapshot.capabilities.workers ? null : (
         <p className={styles.notice} role="note">
-          This browser cannot run background processing, so only smaller files can be prepared here. For large files, use a
+          This browser cannot run background processing, so only smaller files can be handled here. For large files, use a
           recent version of Chrome, Edge, Firefox or Safari.
         </p>
       )}
       {status === 'canceled' ? (
         <p className={styles.notice} role="note">
-          Preparation was canceled. Nothing was downloaded. You can try again or change your files.
+          Canceled. Nothing was changed or downloaded. You can try again or pick other files.
         </p>
       ) : null}
       {status === 'failed' && error ? (

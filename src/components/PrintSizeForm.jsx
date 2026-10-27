@@ -2,13 +2,12 @@ import { ArrowLeftRight } from 'lucide-react';
 import { fromInches, RESOLUTION_POLICY, toInches, UNITS } from '../engine/index.js';
 import styles from './PrintSizeForm.module.css';
 
-/** Common banner sizes in feet (width × height). Selecting one fills both fields. */
+/** Common print sizes. Selecting one fills both fields and switches to its unit. */
 const PRESETS = [
-  { width: 6, height: 2 },
-  { width: 6, height: 3 },
-  { width: 8, height: 4 },
-  { width: 10, height: 3 },
-  { width: 2, height: 6 },
+  { name: 'A4', width: 21, height: 29.7, unit: 'cm' },
+  { name: 'Letter', width: 8.5, height: 11, unit: 'in' },
+  { name: 'Poster', width: 24, height: 36, unit: 'in' },
+  { name: 'Banner', width: 6, height: 2, unit: 'ft' },
 ];
 
 /** @param {number} value */
@@ -43,9 +42,7 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
   const swap = () => onChange({ width: printSize.height, height: printSize.width });
 
   const applyPreset = (preset) => {
-    const width = printSize.unit === 'ft' ? preset.width : tidy(fromInches(toInches(preset.width, 'ft'), printSize.unit));
-    const height = printSize.unit === 'ft' ? preset.height : tidy(fromInches(toInches(preset.height, 'ft'), printSize.unit));
-    onChange({ width: String(width), height: String(height) });
+    onChange({ unit: preset.unit, width: String(preset.width), height: String(preset.height) });
   };
 
   const errorId = errors.length ? 'print-size-errors' : undefined;
@@ -89,7 +86,7 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
           <select id="print-unit" value={printSize.unit} onChange={(event) => changeUnit(event.target.value)}>
             {Object.entries(UNITS).map(([value, unit]) => (
               <option key={value} value={value}>
-                {unit.label} ({unit.short})
+                {unit.label}
               </option>
             ))}
           </select>
@@ -104,20 +101,23 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
         </ul>
       ) : null}
 
-      <div className={styles.presets} role="group" aria-label="Common banner sizes">
+      <div className={styles.presets} role="group" aria-label="Common print sizes">
         <span className={styles.presetsLabel}>Common sizes:</span>
         {PRESETS.map((preset) => (
-          <button key={`${preset.width}x${preset.height}`} type="button" className={styles.preset} onClick={() => applyPreset(preset)}>
-            {preset.width} × {preset.height} ft
+          <button key={preset.name} type="button" className={styles.preset} onClick={() => applyPreset(preset)}>
+            {preset.name}{' '}
+            <span className={styles.presetSize}>
+              {preset.width} × {preset.height} {preset.unit}
+            </span>
           </button>
         ))}
       </div>
 
       <p className={styles.policy}>
-        <strong>Resolution guide:</strong> {RESOLUTION_POLICY.targetPpi} PPI or more is the target. Below{' '}
-        {RESOLUTION_POLICY.warningBelowPpi} PPI you get a warning, and below {RESOLUTION_POLICY.criticalBelowPpi} PPI a
-        critical warning. These are defaults for banners seen up close, not universal print standards; viewing distance,
-        material and your printer&apos;s requirements all matter.
+        <strong>How sharp is sharp?</strong> {RESOLUTION_POLICY.targetPpi} pixels per inch (PPI) or more looks crisp up
+        close. Below {RESOLUTION_POLICY.warningBelowPpi} PPI you get a warning, and below{' '}
+        {RESOLUTION_POLICY.criticalBelowPpi} PPI a stronger one. Large prints seen from a distance can get by with less, so
+        check with your print shop.
       </p>
     </div>
   );

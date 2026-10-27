@@ -87,7 +87,7 @@ test('applies a saved theme before the first render', async ({ page, baseURL }) 
   await page.goto(baseURL);
   await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked();
   expect(await page.evaluate(() => window.__themeAtFirstRender)).toBe('dark');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(10, 16, 32)');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(20, 26, 51)');
 });
 
 test('protected vectors download byte-for-byte', async ({ page }) => {
@@ -98,7 +98,7 @@ test('protected vectors download byte-for-byte', async ({ page }) => {
   ];
   for (const fixture of fixtures) {
     await chooseFiles(page, [fixture]);
-    await expect(page.getByText('Protected vector', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('Vector file', { exact: false }).first()).toBeVisible();
     await prepare(page);
     await expect(page.getByText('Kept exactly', { exact: true })).toBeVisible();
     const saved = await download(page, page.getByTestId('download-primary'));
@@ -117,7 +117,7 @@ test('several files become a verified ZIP of the originals', async ({ page }) =>
     { name: 'Bannière — été.svg', mimeType: 'image/svg+xml', buffer: svgWithMetadata() },
   ];
   await chooseFiles(page, files);
-  await expect(page.getByText('ZIP of originals')).toBeVisible();
+  await expect(page.getByText(/packaged unchanged into one ZIP/).first()).toBeVisible();
   await prepare(page);
   await expect(page.getByText(/All 4 files were extracted/)).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
@@ -229,12 +229,12 @@ test('keeps animated images unchanged', async ({ page }) => {
 test('resolution warnings need acknowledgement and follow the print size', async ({ page }) => {
   const jpeg = await makeImage(page, { width: 3000, height: 2000, quality: 0.95 });
   await chooseFiles(page, [{ name: 'small.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
-  await page.getByRole('button', { name: '8 × 4 ft' }).click();
+  await setPrintSize(page, 8, 4);
   await prepare(page);
 
   const downloadButton = page.getByTestId('download-primary');
-  const confirm = page.getByRole('checkbox', { name: /I understand this artwork may print soft/ });
-  await expect(page.getByText('Check the resolution before you download')).toBeVisible();
+  const confirm = page.getByRole('checkbox', { name: /I understand this may print soft/ });
+  await expect(page.getByText('This may not print sharply')).toBeVisible();
   const results = page.getByTestId('results');
   await expect(results.getByText('Very low resolution · 31 PPI')).toBeVisible();
   await expect(downloadButton).toBeDisabled();
@@ -246,8 +246,8 @@ test('resolution warnings need acknowledgement and follow the print size', async
   await expect(downloadButton).toBeDisabled();
 
   await setPrintSize(page, 1.5, 1);
-  await expect(page.getByText('Check the resolution before you download')).toHaveCount(0);
-  await expect(results.getByText(/Meets target · 166 PPI/)).toBeVisible();
+  await expect(page.getByText('This may not print sharply')).toHaveCount(0);
+  await expect(results.getByText(/Sharp · 166 PPI/)).toBeVisible();
   await expect(downloadButton).toBeEnabled();
 
   await setPrintSize(page, 1, 1);
@@ -270,7 +270,7 @@ test('tidies a PDF without touching its pages and keeps encrypted PDFs', async (
   const pdf = await printPdfBytes({ bloatBytes: 300_000 });
   await chooseFiles(page, [{ name: 'Proof.pdf', mimeType: 'application/pdf', buffer: pdf }]);
   await prepare(page);
-  await expect(page.getByText('Tidied', { exact: true })).toBeVisible();
+  await expect(page.getByText('Smaller', { exact: true })).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toBe('Proof-prepared.pdf');
   expect(saved.bytes.length).toBeLessThan(pdf.length);
@@ -301,12 +301,12 @@ test('cancels a running job and can try again', async ({ page }) => {
   }
   await page.getByTestId('file-input').setInputFiles(paths);
   await expect(page.locator('text=Checking this file…')).toHaveCount(0, { timeout: 30_000 });
-  await page.getByRole('button', { name: /^Prepare/ }).click();
+  await page.getByTestId('prepare-button').click();
   await expect(page.getByRole('progressbar')).toBeVisible();
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByText('Preparation was canceled.')).toBeVisible();
+  await expect(page.getByText(/^Canceled. Nothing was changed/)).toBeVisible();
   await expect(page.getByTestId('results')).toHaveCount(0);
-  await expect(page.getByTestId('live-region')).toHaveText('Preparation canceled.');
+  await expect(page.getByTestId('live-region')).toHaveText('Canceled.');
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByTestId('results')).toBeVisible({ timeout: 90_000 });
 });
@@ -318,7 +318,7 @@ test('shows actionable errors for unsupported and empty files', async ({ page })
   ]);
   await expect(page.getByText(/\.txt files are not supported/).first()).toBeVisible();
   await expect(page.getByText(/This file is empty/).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Prepare/ })).toBeDisabled();
+  await expect(page.getByTestId('prepare-button')).toBeDisabled();
   await page.getByRole('button', { name: 'Remove notes.txt' }).click();
   await page.getByRole('button', { name: 'Remove empty.png' }).click();
   await expect(page.getByText('Choose at least one file first.')).toBeVisible();
@@ -338,7 +338,7 @@ test('drag and drop feeds the same pipeline as the picker', async ({ page }) => 
   await zone.dispatchEvent('dragover', { dataTransfer });
   await zone.dispatchEvent('drop', { dataTransfer });
   await expect(page.getByText('dropped-logo.svg')).toBeVisible();
-  await expect(page.getByText('Protected vector', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('Vector file', { exact: false }).first()).toBeVisible();
   await expect(zone).not.toHaveAttribute('data-active', 'true');
 });
 
@@ -348,10 +348,10 @@ test('works with the keyboard alone', async ({ page, browserName }) => {
   // other engines; buttons and fields are reachable with Tab everywhere.
   if (browserName !== 'webkit') {
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'Skip to the file workspace' })).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Skip to your files' })).toBeFocused();
   }
   let reached = false;
-  for (let index = 0; index < 20 && !reached; index += 1) {
+  for (let index = 0; index < 40 && !reached; index += 1) {
     await page.keyboard.press('Tab');
     reached = await page.evaluate(() => document.activeElement?.id === 'choose-files-button');
   }
@@ -359,13 +359,102 @@ test('works with the keyboard alone', async ({ page, browserName }) => {
   const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.keyboard.press('Enter')]);
   await chooser.setFiles({ name: 'logo.eps', mimeType: 'application/postscript', buffer: Buffer.from(epsBytes()) });
   await expect(page.getByText('logo.eps')).toBeVisible();
-  const prepareButton = page.getByRole('button', { name: /^Prepare/ });
+  const prepareButton = page.getByTestId('prepare-button');
   await prepareButton.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('results')).toBeVisible();
   await page.getByTestId('download-primary').focus();
   const [event] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Enter')]);
   expect(event.suggestedFilename()).toBe('logo.eps');
+});
+
+test('the command prompt finds tools and opens the matching picker', async ({ page }) => {
+  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
+  const output = page.getByTestId('prompt-output');
+  const input = prompt.getByRole('textbox', { name: 'Command' });
+
+  // On first load it welcomes the visitor and runs /help by itself.
+  await expect(output).toContainText('Welcome to Compressive.');
+  await expect(output).toContainText('Start fresh');
+
+  await prompt.getByRole('button', { name: /^\/png/ }).click();
+  await expect(input).toBeDisabled();
+  await expect(output).toContainText('PNG compressor ready.');
+  await expect(input).toBeEnabled();
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), output.getByRole('button', { name: /Choose a PNG/ }).click()]);
+  expect(chooser.isMultiple()).toBe(false);
+  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toBe('.png');
+  await chooser.setFiles({ name: 'logo.png', mimeType: 'image/png', buffer: Buffer.from(pngBytes({ width: 40, height: 40 })) });
+  await expect(page.getByText('Image compression')).toBeVisible();
+
+  await input.fill('can you make my scan.pdf smaller?');
+  await input.press('Enter');
+  await expect(output).toContainText('Sounds like a job for /pdf (Shrink a PDF).');
+
+  await input.fill('/nope');
+  await input.press('Enter');
+  await expect(output).toContainText('Unknown command: /nope');
+  await expect(output).toContainText("Try /help to see what's available.");
+
+  await input.fill('/clear');
+  await input.press('Enter');
+  await expect(output).toContainText('All clear. Ready for your next command.');
+  await expect(output.locator('p')).toHaveCount(1);
+
+  const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await prompt.getByRole('button', { name: 'Switch theme' }).click();
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(before);
+});
+
+test('hero tool buttons open the right picker and the print check', async ({ page }) => {
+  const tools = page.getByRole('list', { name: 'Tools' });
+  const selected = page.getByRole('list', { name: 'Selected files' }).getByRole('listitem');
+
+  let [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Zip files' }).click()]);
+  expect(chooser.isMultiple()).toBe(true);
+  await chooser.setFiles([
+    { name: 'a.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svgWithMetadata()) },
+    { name: 'b.eps', mimeType: 'application/postscript', buffer: Buffer.from(epsBytes()) },
+  ]);
+  await expect(selected).toHaveCount(2);
+
+  [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Compress JPG' }).click()]);
+  expect(chooser.isMultiple()).toBe(false);
+  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toBe('.jpg,.jpeg');
+  await chooser.setFiles({ name: 'photo.jpg', mimeType: 'image/jpeg', buffer: await makeImage(page, { width: 300, height: 200 }) });
+  // A single-file tool starts a fresh selection.
+  await expect(selected).toHaveCount(1);
+  await expect(selected.first()).toContainText('photo.jpg');
+
+  await tools.getByRole('button', { name: 'Check print sharpness' }).click();
+  await expect(page.getByLabel(/^Width/)).toBeFocused();
+});
+
+test('reduced motion shows prompt results instantly', async ({ page, baseURL }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(baseURL);
+  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
+  const output = page.getByTestId('prompt-output');
+  await expect(output).toContainText('Start fresh');
+  expect(await prompt.evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
+  await prompt.getByRole('button', { name: /^\/pdf/ }).click();
+  await expect(output).toContainText('PDF compressor ready.', { timeout: 1000 });
+  await expect(prompt.getByText('Working…')).toHaveCount(0);
+});
+
+test('the command prompt stacks its sidebar above the terminal on phones', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(baseURL);
+  const prompt = page.getByRole('region', { name: 'Compressive command prompt' });
+  const sidebar = prompt.getByRole('group', { name: 'Pick a command' });
+  const input = prompt.getByRole('textbox', { name: 'Command' });
+  const [sidebarBox, inputBox] = await Promise.all([sidebar.boundingBox(), input.boundingBox()]);
+  expect(sidebarBox.y + sidebarBox.height).toBeLessThanOrEqual(inputBox.y);
+  // Descriptions are hidden visually on phones but stay available to screen readers.
+  expect((await prompt.getByText('See every command', { exact: true }).boundingBox()).width).toBeLessThanOrEqual(1);
+  await prompt.getByRole('button', { name: /^\/clear/ }).click();
+  await expect(page.getByTestId('prompt-output')).toContainText('All clear.');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
 
 for (const colorScheme of ['light', 'dark']) {
@@ -384,7 +473,7 @@ for (const colorScheme of ['light', 'dark']) {
         { name: longName, mimeType: 'image/svg+xml', buffer: svgWithMetadata() },
         { name: 'poster.psd', buffer: psdBytes({ width: 3000, height: 2000 }) },
       ]);
-      await page.getByRole('button', { name: '8 × 4 ft' }).click();
+      await setPrintSize(page, 8, 4);
       await page.getByLabel('Unit').selectOption('cm');
       await expect(page.getByLabel(/^Width \(cm\)/)).toHaveValue('243.84');
       await page.getByLabel('Unit').selectOption('ft');
@@ -392,7 +481,7 @@ for (const colorScheme of ['light', 'dark']) {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(0);
       const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(background).toBe(colorScheme === 'dark' ? 'rgb(10, 16, 32)' : 'rgb(244, 246, 251)');
+      expect(background).toBe(colorScheme === 'dark' ? 'rgb(20, 26, 51)' : 'rgb(238, 242, 255)');
       await mkdir(SCREENS, { recursive: true });
       await page.screenshot({ path: `${SCREENS}/${colorScheme}-${viewport.width}.png`, fullPage: true });
     });

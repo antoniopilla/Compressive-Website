@@ -16,9 +16,8 @@ export default function SiteHeader({ theme, onThemeChange }) {
       <div className={styles.inner}>
         <a className={styles.brand} href="#main" aria-label="Compressive, go to main content">
           <svg className={styles.mark} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-            <rect width="32" height="32" rx="8" />
-            <path d="M9 10.5h14M9 16h9M9 21.5h14" />
-            <circle cx="22.5" cy="16" r="2.2" />
+            <rect className={styles.markTile} width="32" height="32" rx="9" />
+            <path className={styles.markArrows} d="M8 8l6 6M14 9v5H9M24 24l-6-6M18 23v-5h5" />
           </svg>
           <span className={styles.name}>Compressive</span>
         </a>

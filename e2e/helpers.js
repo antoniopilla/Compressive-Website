@@ -65,7 +65,7 @@ export async function chooseFiles(page, files) {
 }
 
 export async function prepare(page) {
-  await page.getByRole('button', { name: /^Prepare/ }).click();
+  await page.getByTestId('prepare-button').click();
   await expect(page.getByTestId('results')).toBeVisible({ timeout: 60_000 });
 }
 
@@ -81,7 +81,14 @@ export async function startOver(page) {
   await expect(page.getByTestId('results')).toHaveCount(0);
 }
 
+/** Opens the optional print check if it is folded away. */
+export async function openPrintCheck(page) {
+  const toggle = page.getByRole('button', { name: /Printing it?/ });
+  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+}
+
 export async function setPrintSize(page, width, height) {
+  await openPrintCheck(page);
   await page.getByLabel(/^Width/).fill(String(width));
   await page.getByLabel(/^Height/).fill(String(height));
 }

@@ -1,5 +1,5 @@
 .wrapper {
-  margin-top: 14px;
+  min-width: 0;
 }
 
 .list {
@@ -8,50 +8,44 @@
   list-style: none;
 }
 
+/* Each row has a 5px coloured edge for its file type, like the prompt's commands. */
 .row {
+  --edge: var(--sky);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  padding: 12px 12px 12px 14px;
+  border-left: 5px solid var(--edge);
+  border-radius: var(--radius-card);
+  background: var(--sidebar);
+}
+
+.row[data-category='vector'] {
+  --edge: var(--mint);
+}
+
+.row[data-category='pdf'] {
+  --edge: var(--coral);
+}
+
+.row[data-category='psd'] {
+  --edge: var(--violet);
 }
 
 .row[data-invalid] {
-  border-color: color-mix(in srgb, var(--critical) 45%, var(--border));
-  background: color-mix(in srgb, var(--critical-soft) 55%, var(--surface));
+  --edge: var(--coral);
+  background: var(--coral-soft);
 }
 
 .icon {
   display: inline-grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--surface-3);
-  color: var(--text-muted);
-}
-
-.icon[data-category='vector'] {
-  background: var(--success-soft);
-  color: var(--success);
-}
-
-.icon[data-category='raster'] {
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-}
-
-.icon[data-category='pdf'] {
-  background: var(--critical-soft);
-  color: var(--critical);
-}
-
-.icon[data-category='psd'] {
-  background: var(--info-soft);
-  color: var(--info);
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--window);
+  color: var(--edge);
 }
 
 .main {
@@ -70,9 +64,9 @@
   flex-wrap: wrap;
   gap: 4px 12px;
   margin-top: 2px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 .status {
@@ -96,12 +90,12 @@
 }
 
 .pending {
-  color: var(--text-muted);
   align-items: center;
+  color: var(--muted);
 }
 
 .error {
-  color: var(--critical);
+  color: var(--coral-ink);
 }
 
 .error svg {
@@ -110,7 +104,7 @@
 }
 
 .note {
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .actions {

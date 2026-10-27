@@ -1,0 +1,116 @@
+.hero {
+  display: grid;
+  gap: 28px;
+  padding: 36px 0 8px;
+}
+
+.top {
+  display: grid;
+  gap: 24px;
+}
+
+.copy {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.kicker {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: var(--radius-chip);
+  background: var(--mint-soft);
+  color: var(--mint-ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.title {
+  max-width: 18ch;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  letter-spacing: -0.025em;
+}
+
+.lead {
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px 8px 12px;
+  border: 0;
+  border-left: 5px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: var(--window);
+  color: var(--text);
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+.tool:hover {
+  transform: translateY(-2px);
+  background: var(--chip);
+}
+
+.toolIcon {
+  color: var(--accent);
+}
+
+.promises {
+  display: grid;
+  gap: 10px;
+  align-content: end;
+  list-style: none;
+}
+
+.promise {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-window);
+  background: var(--window);
+}
+
+.promiseIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.promiseTitle {
+  font-weight: 700;
+}
+
+.promiseText {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+@media (min-width: 1024px) {
+  .top {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    align-items: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool:hover {
+    transform: none;
+  }
+}

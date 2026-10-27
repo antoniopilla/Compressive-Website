@@ -78,7 +78,7 @@ This guide takes **Compressive** from a folder on your computer to a free public
   npm run dev
   ```
 - **Expected result:** a line like `Local:   http://localhost:5173/`. Hold **Ctrl** and click the link, or paste it into your browser.
-- **Try it:** choose a vector file, an image, a PDF, or several files together. Enter a print size, select **Prepare**, review the results, then **Download**. Try a small image at 8 × 4 ft to see the resolution warning.
+- **Try it:** click a tool such as **Compress PNG**, or drop an image, a PDF or several files together. Select **Compress** (or **Create ZIP**), review the result, then **Download**. To see the resolution warning, open **Printing it?**, pick **Poster** and try a small image.
 - **Common failure:** `Port 5173 is in use`. Vite picks the next port automatically; use the address it prints.
 
 ### 10. Run the checks
@@ -200,7 +200,7 @@ In **Set up builds and deployments**, enter:
 
 ### 22. Check the live site
 1. Open your `pages.dev` address.
-2. Prepare and download one of each: an SVG, a JPG or PNG, a PDF, and two files together (ZIP).
+2. Compress and download one of each: a JPG or PNG, a PDF, and two files together (ZIP). Try a command in the prompt too, such as `/pdf`.
 3. Check that background processing works: press **F12** → **Network**, then prepare an image. You should see `image.worker-….js` load from your own `pages.dev` address with status 200, and no request should upload your file. Under **Network → Headers** for the page, `content-security-policy` should include `connect-src 'self'`.
 4. Check on a phone too.
 

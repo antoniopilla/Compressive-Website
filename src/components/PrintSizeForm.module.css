@@ -17,8 +17,8 @@
 }
 
 .field label {
-  font-weight: 650;
   font-size: 0.9rem;
+  font-weight: 650;
 }
 
 .field input,
@@ -26,15 +26,21 @@
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--chip);
   color: var(--text);
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
 }
 
 .field input[aria-invalid='true'] {
-  border-color: var(--critical);
+  border-color: var(--coral);
 }
 
 .field:last-child {
@@ -46,9 +52,9 @@
 }
 
 .errors {
-  list-style: none;
-  color: var(--critical);
+  color: var(--coral-ink);
   font-size: 0.88rem;
+  list-style: none;
 }
 
 .presets {
@@ -59,34 +65,43 @@
 }
 
 .presetsLabel {
-  color: var(--text-muted);
+  color: var(--muted);
   font-size: 0.88rem;
 }
 
 .preset {
   min-height: 36px;
   padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: var(--chip);
   color: var(--text);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
-  font-variant-numeric: tabular-nums;
 }
 
 .preset:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--chip-hover);
+}
+
+.presetSize {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
 .policy {
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text-muted);
+  border-radius: var(--radius-card);
+  background: var(--sidebar);
+  color: var(--muted);
   font-size: 0.86rem;
+}
+
+.policy strong {
+  color: var(--text);
 }
 
 @media (min-width: 560px) {

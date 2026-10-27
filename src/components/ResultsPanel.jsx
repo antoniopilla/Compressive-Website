@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { CircleCheck, CircleAlert, Download, Info, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { CircleCheck, CircleAlert, Download, Info, Printer, ShieldCheck, TriangleAlert } from 'lucide-react';
 import {
   describePrintSize,
   formatBytes,
@@ -21,9 +21,14 @@ import styles from './ResultsPanel.module.css';
  *   snapshot: import('../engine/studio.js').StudioSnapshot,
  *   actions: ReturnType<typeof import('../hooks/useFileStudio.js').useFileStudio>['actions'],
  *   onDownload: (blob: Blob, filename: string) => void,
+ *   onOpenPrintCheck: () => void,
  * }} props
  */
-export default function ResultsPanel({ snapshot, actions, onDownload }) {
+
+/** Notes that only matter when the visitor has asked about printing. */
+const PRINT_ONLY_LIMITATIONS = new Set(['vector-not-assessed', 'psd-header-only', 'pdf-not-assessed', 'pdf-embedded-images', 'zip-unassessed']);
+
+export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrintCheck }) {
   const replaceInputRef = useRef(null);
   const replaceTargetRef = useRef(null);
   const { result, health, acknowledgement, printSize } = snapshot;
@@ -43,11 +48,6 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
     const original = actions.getDownload('original', primaryFile.fileId);
     if (original) onDownload(original.blob, original.filename);
   };
-  const focusPrintSize = () => {
-    const input = document.getElementById('print-width');
-    input?.scrollIntoView({ block: 'center' });
-    input?.focus();
-  };
   const chooseReplacement = (fileId) => {
     replaceTargetRef.current = fileId;
     replaceInputRef.current?.click();
@@ -58,6 +58,13 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
     if (file && replaceTargetRef.current) actions.replaceFile(replaceTargetRef.current, file);
     replaceTargetRef.current = null;
   };
+
+  // Resolution details appear only once a print size has been entered.
+  const printChecked = health.complete;
+  const limitations = printChecked
+    ? result.limitations
+    : result.limitations.filter((limitation) => !PRINT_ONLY_LIMITATIONS.has(limitation.code));
+  const offerPrintCheck = !printChecked && result.files.some((file) => file.assessable);
 
   const saved = totals.savedBytes;
   const savedLabel = saved > 0 ? 'Saved' : saved < 0 ? 'Larger by' : 'Change';
@@ -119,7 +126,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
       {acknowledgement.required ? (
         <div className={styles.ack} role="group" aria-labelledby="ack-title">
           <p id="ack-title" className={styles.ackTitle}>
-            <TriangleAlert size={19} aria-hidden="true" /> Check the resolution before you download
+            <TriangleAlert size={19} aria-hidden="true" /> This may not print sharply
           </p>
           <p className={styles.ackText}>
             {warnedFiles.length === 1
@@ -134,13 +141,12 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
               onChange={(event) => actions.acknowledgeWarnings(event.target.checked)}
             />
             <span>
-              I understand this artwork may print soft or pixelated at {describePrintSize(printSize)} and I want to
-              continue.
+              I understand this may print soft or pixelated at {describePrintSize(printSize)} and I want to continue.
             </span>
           </label>
           <div className={styles.ackActions}>
-            <button type="button" className="btn btn-secondary" onClick={focusPrintSize}>
-              Adjust print size
+            <button type="button" className="btn btn-secondary" onClick={onOpenPrintCheck}>
+              Change print size
             </button>
             {warnedFiles.length === 1 ? (
               <button type="button" className="btn btn-secondary" onClick={() => chooseReplacement(warnedFiles[0].fileId)}>
@@ -182,15 +188,32 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
       <h3 className={styles.sectionTitle}>File details</h3>
       <ul className={styles.files}>
         {result.files.map((file) => (
-          <FileResult key={file.fileId} file={file} route={result.route} fileHealth={health.files[file.fileId]} details={result.details} />
+          <FileResult
+            key={file.fileId}
+            file={file}
+            route={result.route}
+            fileHealth={health.files[file.fileId]}
+            details={result.details}
+            printChecked={printChecked}
+          />
         ))}
       </ul>
 
-      {result.limitations.length ? (
+      {offerPrintCheck ? (
+        <p className={styles.printOffer}>
+          <Printer size={18} aria-hidden="true" />
+          <span>Printing this?</span>
+          <button type="button" className="btn btn-ghost" onClick={onOpenPrintCheck}>
+            Check if it will look sharp
+          </button>
+        </p>
+      ) : null}
+
+      {limitations.length ? (
         <div className={styles.limitations}>
           <h3 className={styles.sectionTitle}>Good to know</h3>
           <ul>
-            {result.limitations.map((limitation) => (
+            {limitations.map((limitation) => (
               <li key={limitation.code}>{limitation.message}</li>
             ))}
           </ul>
@@ -217,17 +240,15 @@ export default function ResultsPanel({ snapshot, actions, onDownload }) {
 }
 
 /**
- * @param {{ file: import('../engine/pipeline.js').FileOutcome, route: string, fileHealth: import('../engine/health.js').FileHealth, details: any }} props
+ * @param {{ file: import('../engine/pipeline.js').FileOutcome, route: string, fileHealth: import('../engine/health.js').FileHealth, details: any, printChecked: boolean }} props
  */
-function FileResult({ file, route, fileHealth, details }) {
+function FileResult({ file, route, fileHealth, details, printChecked }) {
   const dimensionsChanged =
     file.originalDimensions &&
     file.preparedDimensions &&
     (file.originalDimensions.width !== file.preparedDimensions.width ||
       file.originalDimensions.height !== file.preparedDimensions.height);
   const bytesChanged = file.preparedBytes !== null && file.preparedBytes !== file.originalBytes;
-  const { original, prepared } = fileHealth;
-  const delivered = prepared ?? original;
   const firstPage = route === 'pdf-rewrite' ? details?.stats?.firstPage : null;
 
   return (
@@ -282,53 +303,7 @@ function FileResult({ file, route, fileHealth, details }) {
         ) : null}
       </dl>
 
-      <div className={styles.health}>
-        {fileHealth.measurable && original ? (
-          <>
-            <div className={styles.healthRow}>
-              <span className={styles.healthLabel}>{prepared && prepared !== original ? 'Original' : 'Resolution'}</span>
-              <HealthBadge status={original.status} reason={original.reason} ppi={original.effectivePpi} />
-              {prepared && prepared !== original ? (
-                <>
-                  <span className={styles.healthLabel}>Prepared</span>
-                  <HealthBadge status={prepared.status} reason={prepared.reason} ppi={prepared.effectivePpi} />
-                </>
-              ) : null}
-            </div>
-            <p className={styles.healthMessage}>{delivered.message}</p>
-            {delivered.ppiX !== null ? (
-              <p className={styles.healthDetail}>
-                Horizontal {formatPpi(delivered.ppiX)} · Vertical {formatPpi(delivered.ppiY)} · effective PPI is the
-                lower of the two.
-              </p>
-            ) : null}
-            {fileHealth.crossingMessage ? (
-              <p className={styles.crossing}>
-                <TriangleAlert size={16} aria-hidden="true" /> {fileHealth.crossingMessage}
-              </p>
-            ) : fileHealth.comparison?.sourceBelowTarget && original.status !== 'unknown' ? (
-              <p className={styles.healthDetail}>
-                Your original is already below the {RESOLUTION_POLICY.targetPpi} PPI target at this size; preparing did
-                not lower its resolution.
-              </p>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <div className={styles.healthRow}>
-              <span className={styles.healthLabel}>Resolution</span>
-              <HealthBadge status="unknown" />
-            </div>
-            <p className={styles.healthMessage}>{fileHealth.limitation}</p>
-          </>
-        )}
-        {fileHealth.measurable && fileHealth.limitation ? <p className={styles.healthDetail}>{fileHealth.limitation}</p> : null}
-        {fileHealth.aspectMessage ? (
-          <p className={styles.aspect}>
-            <Info size={16} aria-hidden="true" /> {fileHealth.aspectMessage}
-          </p>
-        ) : null}
-      </div>
+      {printChecked ? <ResolutionDetails fileHealth={fileHealth} /> : null}
 
       {file.notes.length ? (
         <ul className={styles.notes}>
@@ -338,5 +313,65 @@ function FileResult({ file, route, fileHealth, details }) {
         </ul>
       ) : null}
     </li>
+  );
+}
+
+/**
+ * Resolution for one file at the entered print size (shown only after a print
+ * size has been entered).
+ *
+ * @param {{ fileHealth: import('../engine/health.js').FileHealth }} props
+ */
+function ResolutionDetails({ fileHealth }) {
+  const { original, prepared } = fileHealth;
+  const delivered = prepared ?? original;
+  return (
+    <div className={styles.health}>
+      {fileHealth.measurable && original ? (
+        <>
+          <div className={styles.healthRow}>
+            <span className={styles.healthLabel}>{prepared && prepared !== original ? 'Original' : 'Resolution'}</span>
+            <HealthBadge status={original.status} reason={original.reason} ppi={original.effectivePpi} />
+            {prepared && prepared !== original ? (
+              <>
+                <span className={styles.healthLabel}>Compressed</span>
+                <HealthBadge status={prepared.status} reason={prepared.reason} ppi={prepared.effectivePpi} />
+              </>
+            ) : null}
+          </div>
+          <p className={styles.healthMessage}>{delivered.message}</p>
+          {delivered.ppiX !== null ? (
+            <p className={styles.healthDetail}>
+              Horizontal {formatPpi(delivered.ppiX)} · Vertical {formatPpi(delivered.ppiY)} · effective PPI is the
+              lower of the two.
+            </p>
+          ) : null}
+          {fileHealth.crossingMessage ? (
+            <p className={styles.crossing}>
+              <TriangleAlert size={16} aria-hidden="true" /> {fileHealth.crossingMessage}
+            </p>
+          ) : fileHealth.comparison?.sourceBelowTarget && original.status !== 'unknown' ? (
+            <p className={styles.healthDetail}>
+              Your original is already below the {RESOLUTION_POLICY.targetPpi} PPI target at this size; compressing did
+              not lower its resolution.
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <div className={styles.healthRow}>
+            <span className={styles.healthLabel}>Resolution</span>
+            <HealthBadge status="unknown" />
+          </div>
+          <p className={styles.healthMessage}>{fileHealth.limitation}</p>
+        </>
+      )}
+      {fileHealth.measurable && fileHealth.limitation ? <p className={styles.healthDetail}>{fileHealth.limitation}</p> : null}
+      {fileHealth.aspectMessage ? (
+        <p className={styles.aspect}>
+          <Info size={16} aria-hidden="true" /> {fileHealth.aspectMessage}
+        </p>
+      ) : null}
+    </div>
   );
 }

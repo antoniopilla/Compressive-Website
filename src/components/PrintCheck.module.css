@@ -1,0 +1,67 @@
+.printCheck {
+  border-left: 5px solid var(--sky);
+  border-radius: var(--radius-card);
+  background: var(--sidebar);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--chip);
+}
+
+.icon {
+  flex: none;
+  color: var(--sky-ink);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.labelHint {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 180ms ease;
+}
+
+.printCheck[data-open] .chevron {
+  transform: rotate(180deg);
+}
+
+.body {
+  padding: 4px 14px 16px;
+  animation: reveal 0.25s ease-out both;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

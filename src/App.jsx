@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { UNITS } from './engine/index.js';
 import { useFileStudio } from './hooks/useFileStudio.js';
 import { useDownloads } from './hooks/useDownloads.js';
 import { readPreference, usePreference, writePreference } from './hooks/usePreference.js';
+import { useReducedMotion } from './hooks/useReducedMotion.js';
 import { resultHeadline } from './ui/labels.js';
+import { TOOLS } from './ui/tools.js';
 import SiteHeader from './components/SiteHeader.jsx';
-import Intro from './components/Intro.jsx';
+import Hero from './components/Hero.jsx';
 import Panel from './components/Panel.jsx';
 import DropZone from './components/DropZone.jsx';
 import NoticeList from './components/NoticeList.jsx';
 import SelectionList from './components/SelectionList.jsx';
-import PrintSizeForm from './components/PrintSizeForm.jsx';
+import PrintCheck from './components/PrintCheck.jsx';
 import PreparePanel from './components/PreparePanel.jsx';
 import ResultsPanel from './components/ResultsPanel.jsx';
 import InfoSection from './components/InfoSection.jsx';
@@ -31,19 +33,19 @@ function announcementFor(snapshot) {
     case 'validating':
       return selection.length === 1 ? 'Checking your file…' : `Checking ${selection.length} files…`;
     case 'processing':
-      return progress ? `${progress.label}…` : 'Preparing…';
+      return progress ? `${progress.label}…` : 'Working…';
     case 'ready':
       return result ? `Ready. ${resultHeadline(result)}.` : '';
     case 'canceled':
-      return 'Preparation canceled.';
+      return 'Canceled.';
     case 'failed':
-      return error ? `Preparation failed. ${error.message}` : 'Preparation failed.';
+      return error ? `Something went wrong. ${error.message}` : 'Something went wrong.';
     default:
       if (!selection.length || !plan) return '';
       if (plan.route === 'invalid') {
-        return `${plan.errors.length} ${plan.errors.length === 1 ? 'issue needs' : 'issues need'} attention before preparing.`;
+        return `${plan.errors.length} ${plan.errors.length === 1 ? 'issue needs' : 'issues need'} attention first.`;
       }
-      return `${selection.length} ${selection.length === 1 ? 'file' : 'files'} selected. ${plan.summary}`;
+      return `${selection.length} ${selection.length === 1 ? 'file' : 'files'} added. ${plan.summary}`;
   }
 }
 
@@ -54,6 +56,10 @@ export default function App() {
   }));
   const { snapshot, actions } = useFileStudio(studioOptions);
   const downloads = useDownloads();
+  const reducedMotion = useReducedMotion();
+  const [printOpen, setPrintOpen] = useState(false);
+  const toolInputRef = useRef(null);
+  const pendingToolRef = useRef(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -63,6 +69,7 @@ export default function App() {
 
   const { status, selection } = snapshot;
   const processing = status === 'processing';
+  const scrollBehavior = reducedMotion ? 'auto' : 'smooth';
 
   const focusChooseFiles = () => requestAnimationFrame(() => document.getElementById('choose-files-button')?.focus());
   const handleReset = () => {
@@ -74,76 +81,114 @@ export default function App() {
     focusChooseFiles();
   };
 
+  const openPrintCheck = () => {
+    setPrintOpen(true);
+    requestAnimationFrame(() => {
+      const input = document.getElementById('print-width');
+      input?.scrollIntoView({ behavior: scrollBehavior, block: 'center' });
+      input?.focus({ preventScroll: true });
+    });
+  };
+
+  /** Opens the file picker for a tool (or the print check). Runs inside the click, so browsers allow it. */
+  const openTool = (toolId) => {
+    const tool = TOOLS.find((item) => item.id === toolId);
+    if (!tool) return;
+    if (tool.action === 'print') {
+      openPrintCheck();
+      return;
+    }
+    const input = toolInputRef.current;
+    if (!input) return;
+    pendingToolRef.current = tool;
+    input.accept = tool.accept;
+    input.multiple = Boolean(tool.multiple);
+    input.click();
+  };
+
+  const handleToolFiles = (event) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    const tool = pendingToolRef.current;
+    pendingToolRef.current = null;
+    if (!files.length || !tool) return;
+    // Single-file tools start a fresh selection; the ZIP tool adds to it.
+    if (tool.replace) actions.clearSelection();
+    actions.addFiles(files);
+    document.getElementById('workspace')?.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
+  };
+
+  /** The prompt's "Switch theme" button flips the same preference as the header toggle. */
+  const switchTheme = () => {
+    const root = document.documentElement;
+    const isDark = root.dataset.theme
+      ? root.dataset.theme === 'dark'
+      : Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+    setTheme(isDark ? 'light' : 'dark');
+  };
+
   return (
     <div className={styles.app}>
       <a className="skip-link" href="#workspace">
-        Skip to the file workspace
+        Skip to your files
       </a>
       <SiteHeader theme={theme} onThemeChange={setTheme} />
       <main id="main" className={styles.main}>
-        <Intro />
+        <Hero onTool={openTool} onSwitchTheme={switchTheme} />
 
         <div id="workspace" className={styles.workspace} tabIndex={-1}>
-          <div className={styles.column}>
-            <Panel
-              id="artwork"
-              step={1}
-              title="Choose your artwork"
-              description="Add one file to prepare it, or several to package your originals together."
-              actions={
-                selection.length ? (
-                  <button type="button" className="btn btn-ghost" onClick={handleClear} disabled={processing}>
-                    <Trash2 size={16} aria-hidden="true" /> Clear all
-                  </button>
-                ) : null
-              }
-            >
-              <DropZone
-                onFiles={(files, rejected) => actions.addFiles(files, { rejected })}
-                disabled={processing}
-                hasFiles={selection.length > 0}
-              />
-              <NoticeList notices={snapshot.notices} onDismiss={actions.dismissNotice} />
-              <SelectionList
-                selection={selection}
-                selectionHealth={snapshot.selectionHealth}
-                disabled={processing}
-                onRemove={actions.removeFile}
-                onReplace={actions.replaceFile}
-              />
-            </Panel>
+          <Panel
+            id="files"
+            step={1}
+            title="Add files"
+            description="One image or PDF is compressed on its own. Several files are packed into one ZIP."
+            actions={
+              selection.length ? (
+                <button type="button" className="btn btn-ghost" onClick={handleClear} disabled={processing}>
+                  <Trash2 size={16} aria-hidden="true" /> Clear all
+                </button>
+              ) : null
+            }
+          >
+            <DropZone
+              onFiles={(files, rejected) => actions.addFiles(files, { rejected })}
+              disabled={processing}
+              hasFiles={selection.length > 0}
+            />
+            <NoticeList notices={snapshot.notices} onDismiss={actions.dismissNotice} />
+            <SelectionList
+              selection={selection}
+              selectionHealth={snapshot.selectionHealth}
+              disabled={processing}
+              onRemove={actions.removeFile}
+              onReplace={actions.replaceFile}
+            />
+            <PrintCheck
+              open={printOpen}
+              onToggle={() => setPrintOpen((open) => !open)}
+              printSize={snapshot.printSize}
+              errors={snapshot.printSizeErrors}
+              onChange={actions.setPrintSize}
+              onUnitPreference={(unit) => writePreference('unit', unit)}
+            />
+          </Panel>
 
-            <Panel
-              id="print-size"
-              step={2}
-              title="Set the print size"
-              description="The finished size of the print. Used only for the resolution check; your files are never resized to match it."
-            >
-              <PrintSizeForm
-                printSize={snapshot.printSize}
-                errors={snapshot.printSizeErrors}
-                onChange={actions.setPrintSize}
-                onUnitPreference={(unit) => writePreference('unit', unit)}
+          <Panel id="compress" step={2} title="Compress and download">
+            <PreparePanel snapshot={snapshot} onPrepare={actions.prepare} onCancel={actions.cancel} onRetry={actions.retry} />
+            {snapshot.result ? (
+              <ResultsPanel
+                snapshot={snapshot}
+                actions={{ ...actions, reset: handleReset }}
+                onDownload={downloads.download}
+                onOpenPrintCheck={openPrintCheck}
               />
-            </Panel>
-          </div>
-
-          <div className={styles.column}>
-            <Panel id="prepare" step={3} title="Prepare">
-              <PreparePanel snapshot={snapshot} onPrepare={actions.prepare} onCancel={actions.cancel} onRetry={actions.retry} />
-            </Panel>
-
-            <Panel id="results" step={4} title="Review and download">
-              {snapshot.result ? (
-                <ResultsPanel snapshot={snapshot} actions={{ ...actions, reset: handleReset }} onDownload={downloads.download} />
-              ) : (
-                <p className={styles.placeholder}>
-                  After you prepare, you will see file sizes before and after, pixel dimensions, resolution for your print
-                  size and anything you should check, followed by the download.
-                </p>
-              )}
-            </Panel>
-          </div>
+            ) : (
+              <p className={styles.placeholder}>
+                Your result appears here, with the size before and after and anything worth knowing, followed by the
+                download.
+              </p>
+            )}
+          </Panel>
         </div>
 
         <InfoSection />
@@ -151,11 +196,20 @@ export default function App() {
 
       <footer className={styles.footer}>
         <p>
-          Compressive prepares files in your browser. No uploads, no accounts and no tracking. Resolution
-          thresholds are guidance, so confirm final requirements with your print provider.
+          <strong>Compressive</strong> · Free, private file compression in your browser. No uploads, no accounts and no
+          tracking.
         </p>
       </footer>
 
+      <input
+        ref={toolInputRef}
+        type="file"
+        className="visually-hidden"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={handleToolFiles}
+        data-testid="tool-file-input"
+      />
       <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-testid="live-region">
         {announcementFor(snapshot)}
       </div>

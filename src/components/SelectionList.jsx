@@ -70,8 +70,8 @@ function FileRow({ entry, health, disabled, onRemove, onReplace }) {
   const assessment = health?.assessment ?? null;
 
   return (
-    <li className={styles.row} data-invalid={invalid || undefined}>
-      <span className={styles.icon} data-category={entry.category ?? 'unknown'}>
+    <li className={styles.row} data-invalid={invalid || undefined} data-category={entry.category ?? 'unknown'}>
+      <span className={styles.icon}>
         <FileIcon category={entry.category} />
       </span>
       <div className={styles.main}>

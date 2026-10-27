@@ -2,7 +2,7 @@
   "name": "compressive",
   "private": true,
   "version": "1.0.0",
-  "description": "Browser-local artwork preparation for large-format printing: protect vectors, bundle originals, compress images, tidy PDFs and check print resolution.",
+  "description": "Free, private file compressor that runs in the browser: compress PNG, JPG and WebP images, shrink PDFs, zip files and check print sharpness.",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24.0.0"

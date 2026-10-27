@@ -2,9 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+  background: var(--window);
 }
 
 .inner {
@@ -23,13 +22,9 @@
   gap: 10px;
   min-width: 0;
   color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
   text-decoration: none;
-  font-weight: 700;
-  font-size: 1.02rem;
-}
-
-.brand:hover {
-  color: var(--text);
 }
 
 .mark {
@@ -38,19 +33,16 @@
   height: 32px;
 }
 
-.mark rect {
-  fill: var(--accent);
+.markTile {
+  fill: var(--sky-ink);
 }
 
-.mark path {
+.markArrows {
   fill: none;
-  stroke: var(--accent-contrast);
+  stroke: var(--on-accent);
   stroke-width: 2.6;
   stroke-linecap: round;
-}
-
-.mark circle {
-  fill: var(--accent-soft);
+  stroke-linejoin: round;
 }
 
 .name {
@@ -62,41 +54,40 @@
   display: inline-flex;
   margin: 0;
   padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: var(--chip);
 }
 
 .themeOption {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  min-width: 36px;
   justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  min-height: 36px;
   padding: 6px 10px;
-  border-radius: 999px;
-  color: var(--text-muted);
+  border-radius: var(--radius-chip);
+  color: var(--muted);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .themeOption[data-checked] {
-  background: var(--surface);
+  background: var(--window);
   color: var(--text);
-  box-shadow: var(--shadow-sm);
 }
 
 .themeOption:has(input:focus-visible) {
-  outline: 3px solid var(--focus-ring);
+  outline: 2px solid var(--focus);
   outline-offset: 1px;
 }
 
 /* Browsers without :has() (such as Firefox before 121) still get a visible focus ring. */
 @supports not selector(:has(*)) {
   .themeOption:focus-within {
-    outline: 3px solid var(--focus-ring);
+    outline: 2px solid var(--focus);
     outline-offset: 1px;
   }
 }
