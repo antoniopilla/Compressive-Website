@@ -18,6 +18,42 @@ export async function readBytes(blob, start = 0, length = blob.size - start) {
 }
 
 /**
+ * Reads a Blob through a window of `windowBytes`, so a parser that walks many
+ * small header segments makes one read per window instead of one per segment
+ * (each Blob read costs a fraction of a millisecond, which adds up to minutes
+ * over tens of thousands of segments). Reads larger than the window go
+ * straight to the Blob. Returned arrays may share the window's buffer, so
+ * views over them must use their byteOffset.
+ *
+ * @param {Blob} blob
+ * @param {number} [windowBytes]
+ */
+export function createBlobReader(blob, windowBytes = 1 << 20) {
+  let windowStart = 0;
+  let window = new Uint8Array(0);
+  return {
+    /**
+     * Same contract as readBytes(blob, start, length).
+     *
+     * @param {number} start
+     * @param {number} length
+     * @returns {Promise<Uint8Array>}
+     */
+    async read(start, length) {
+      const end = Math.min(blob.size, start + Math.max(0, length));
+      if (start >= end) return new Uint8Array(0);
+      if (start >= windowStart && end <= windowStart + window.length) {
+        return window.subarray(start - windowStart, end - windowStart);
+      }
+      if (end - start > windowBytes) return readBytes(blob, start, end - start);
+      window = await readBytes(blob, start, windowBytes);
+      windowStart = start;
+      return window.subarray(0, end - start);
+    },
+  };
+}
+
+/**
  * @param {Uint8Array} bytes
  * @param {ArrayLike<number>} signature
  * @param {number} [offset]

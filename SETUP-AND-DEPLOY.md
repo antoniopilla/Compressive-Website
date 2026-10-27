@@ -202,7 +202,8 @@ In **Set up builds and deployments**, enter:
 1. Open your `pages.dev` address.
 2. Compress and download one of each: a JPG or PNG, a PDF, and two files together (ZIP). Try a tool card too, such as **Shrink a PDF**.
 3. Check that background processing works: press **F12** → **Network**, then prepare an image. You should see `image.worker-….js` and an encoder such as `mozjpeg_enc-….wasm` load from your own `pages.dev` address with status 200, and no request should upload your file. Under **Network → Headers** for the page, `content-security-policy` should include `connect-src 'self'`.
-4. Check on a phone too.
+4. In the footer, open **Open-source licences**: a text file listing every library the site uses should open in a new tab.
+5. Check on a phone too.
 
 ### 23. Update the website later
 1. Make changes in VS Code, run `npm run lint`, `npm run test` and `npm run build`.

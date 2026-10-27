@@ -155,6 +155,38 @@ export function decideImageOutcome({ source, encoded, expectedType, method, poli
 }
 
 /**
+ * After the copy at `qualities[index]` fails the visual check, picks the next
+ * quality to try, or says that none can help:
+ *
+ *  - a copy that misses any score by more than `policy.skipMargins` skips
+ *    one quality, because copies that far below also failed one quality up;
+ *  - a file grows by at least `policy.minGrowthPerStep` per step, so when
+ *    even that would make the next copy as large as the original (and the
+ *    image was not resized, which would make any compliant copy worthwhile),
+ *    no higher quality can give a smaller file.
+ *
+ * @param {object} input
+ * @param {number} input.index  Position of the failed quality in `policy.qualities`.
+ * @param {{ luma: number, chroma: number, worstArea: number }} input.similarity  Its visual-check scores.
+ * @param {number} input.bytes  Size of the failed copy.
+ * @param {number} input.sourceBytes
+ * @param {boolean} input.resized
+ * @param {'mozjpeg' | 'webp'} input.encoding
+ * @param {typeof IMAGE_POLICY} [input.policy]
+ * @returns {{ next: number } | { stop: 'no-saving', quality: number } | { stop: 'exhausted' }}
+ */
+export function nextQuality({ index, similarity, bytes, sourceBytes, resized, encoding, policy = IMAGE_POLICY }) {
+  const last = policy.qualities.length - 1;
+  if (index >= last) return { stop: 'exhausted' };
+  const farBelow = Object.entries(policy.skipMargins).some(([measure, margin]) => policy.lookalike[measure] - similarity[measure] > margin);
+  const next = Math.min(index + (farBelow ? 2 : 1), last);
+  if (!resized && bytes * policy.minGrowthPerStep[encoding] ** (next - index) >= sourceBytes) {
+    return { stop: 'no-saving', quality: policy.qualities[next] };
+  }
+  return { next };
+}
+
+/**
  * Expected dimensions after the "longest edge ≤ max" resize used by
  * browser-image-compression's handleMaxWidthOrHeight (no upscaling, aspect
  * ratio preserved, fractional sizes truncated by the canvas).

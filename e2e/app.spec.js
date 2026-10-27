@@ -14,7 +14,18 @@ import {
   sha256,
   svgWithMetadata,
 } from '../tests/fixtures/builders.js';
-import { chooseFiles, download, encodePhoto, makeImage, openPrintCheck, prepare, setPrintSize, startOver, withExifOrientation } from './helpers.js';
+import {
+  chooseFiles,
+  download,
+  encodePhoto,
+  makeImage,
+  openPrintCheck,
+  prepare,
+  setPrintSize,
+  startOver,
+  withExifOrientation,
+  workersCanDraw,
+} from './helpers.js';
 
 const SCREENS = 'test-results/screens';
 
@@ -73,8 +84,23 @@ test('serves the security headers that back the privacy promise', async ({ page,
   expect(csp).toContain("connect-src 'self'");
   // WebAssembly may compile (the image encoders); JavaScript eval stays blocked.
   expect(csp).toContain("script-src 'self' 'wasm-unsafe-eval';");
+  expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
   expect(csp).toContain("worker-src 'self'");
   await expect(page.getByText('Your files stay on your device.')).toBeVisible();
+});
+
+test('ships the licences of the open-source software it includes', async ({ request, baseURL }) => {
+  const response = await request.get(new URL('/third-party-licences.txt', baseURL).href);
+  expect(response.ok()).toBe(true);
+  const text = await response.text();
+  // MozJPEG's IJG licence asks for this sentence in the documentation.
+  expect(text).toContain('This software is based in part on the work of the Independent JPEG Group.');
+  for (const heading of ['MozJPEG (based on libjpeg-turbo), compiled into @jsquash/jpeg', 'libwebp, compiled into @jsquash/webp', 'OxiPNG, compiled into @jsquash/oxipng']) {
+    expect(text).toContain(heading);
+  }
+  for (const name of ['react', 'jszip', 'pdf-lib', 'browser-image-compression', '@jsquash/jpeg', 'wasm-feature-detect']) {
+    expect(text).toMatch(new RegExp(`^- ${name.replace('/', '\\/')} \\d`, 'm'));
+  }
 });
 
 test('applies a saved theme before the first render', async ({ page, baseURL }) => {
@@ -146,6 +172,11 @@ test('compresses a JPEG in a worker, applying camera orientation', async ({ page
   await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
   await expect(page.getByText(/^Visual check: [\d.]+% similar overall/)).toBeVisible();
   await expect(page.getByText('The camera orientation was applied to the pixels.')).toBeVisible();
+  // Engines whose workers can draw keep this work in the background, Safari
+  // included. Playwright's WebKit build has no OffscreenCanvas in workers (real
+  // Safari has since 16.4), so there it rightly falls back to the page.
+  const fallbackNote = page.getByText('Processed on the page because this browser cannot process images in the background.');
+  await expect(fallbackNote).toHaveCount((await workersCanDraw(page.context())) ? 0 : 1);
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toBe('Camera Shot-prepared.jpg');
   expect(saved.bytes.length).toBeLessThan(jpeg.length);
@@ -157,6 +188,41 @@ test('compresses a JPEG in a worker, applying camera orientation', async ({ page
   expect(sha256(original.bytes)).toBe(sha256(jpeg));
   expect(requests.some((request) => /image\.worker-[\w-]+\.js$/.test(request.url()))).toBe(true);
   expect(requests.some((request) => /mozjpeg_enc-[\w-]+\.wasm$/.test(request.url()))).toBe(true);
+});
+
+test.describe("Safari's decoding path", () => {
+  // The library decodes through <img> on Safari, which workers lack, so there
+  // the task decodes with createImageBitmap itself. Chromium with Safari's user
+  // agent runs that path in a worker that has OffscreenCanvas, as Safari 16.4+ does.
+  test.use({
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+  });
+
+  test('decodes in the worker and applies camera orientation exactly once', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', "Needs Safari's user agent in an engine whose workers have OffscreenCanvas");
+    const jpeg = withExifOrientation(await makeImage(page, { width: 1500, height: 1000, quality: 1 }), 6);
+    await chooseFiles(page, [{ name: 'iPhone photo.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
+    await prepare(page);
+    await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
+    await expect(page.getByText('Processed on the page because this browser cannot process images in the background.')).toHaveCount(0);
+    const saved = await download(page, page.getByTestId('download-primary'));
+    // Rotated once: 1500 × 1000 stored, shown and saved upright as 1000 × 1500.
+    expect(await probeRaster(new Blob([saved.bytes]), 'jpg')).toMatchObject({ width: 1000, height: 1500, orientation: 1 });
+  });
+});
+
+test('falls back to the page when the browser cannot process images in the background', async ({ page, baseURL }) => {
+  // Serve the image worker as an older browser would see it: without OffscreenCanvas.
+  await page.route(/\/assets\/image\.worker-[\w-]+\.js$/, async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: `globalThis.OffscreenCanvas = undefined; ${await response.text()}` });
+  });
+  await page.goto(baseURL);
+  const jpeg = await encodePhoto({ type: 'image/jpeg', width: 1200, height: 800, quality: 95 });
+  await chooseFiles(page, [{ name: 'fallback.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
+  await prepare(page);
+  await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
+  await expect(page.getByText('Processed on the page because this browser cannot process images in the background.')).toBeVisible();
 });
 
 test('a smooth photo saved at camera quality shrinks by more than half and still looks the same', async ({ page }) => {
@@ -323,8 +389,11 @@ test('tidies a PDF without touching its pages and keeps encrypted PDFs', async (
 });
 
 test('cancels a running job and can try again', async ({ page }) => {
-  const big = (seed) => Buffer.concat([Buffer.from(psdBytes({ width: 100, height: 100, extraBytes: 0 })), Buffer.from(noiseBytes(45_000_000, seed))]);
-  // Playwright limits in-memory uploads to 50 MB, so large files go through disk.
+  // Big enough that packaging takes several seconds, so the job is still running
+  // when Cancel is clicked, yet small enough for the retry to finish well within
+  // its wait in WebKit while a trace is being recorded (45 MB files did not).
+  const big = (seed) => Buffer.concat([Buffer.from(psdBytes({ width: 100, height: 100, extraBytes: 0 })), Buffer.from(noiseBytes(15_000_000, seed))]);
+  // Playwright limits in-memory uploads, so the files go through disk.
   const paths = [];
   for (const [index, name] of ['layers-a.psd', 'layers-b.psd', 'layers-c.psd'].entries()) {
     const path = test.info().outputPath(name);
@@ -449,6 +518,10 @@ test('the main navigation marks the current section and jumps to each one', asyn
   // The footer repeats the key links and leads back to the top.
   const footer = page.getByRole('navigation', { name: 'Footer' });
   await expect(footer.getByRole('link', { name: 'Limits' })).toHaveAttribute('href', '#limits');
+  // The licences open in a new tab, so following the link never clears the files chosen here.
+  const licences = footer.getByRole('link', { name: 'Open-source licences (opens in a new tab)' });
+  await expect(licences).toHaveAttribute('href', '/third-party-licences.txt');
+  await expect(licences).toHaveAttribute('target', '_blank');
   await page.getByRole('link', { name: 'Back to top' }).click();
   await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
 

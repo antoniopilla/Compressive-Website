@@ -52,6 +52,15 @@ export const SUPPORTED_EXTENSIONS = Object.freeze([
  * and up also keeps full colour resolution in MozJPEG, which is what
  * coloured text needs.
  *
+ * Two shortcuts keep large, detailed photos from trying every quality (see
+ * nextQuality in image-policy.js). A copy that misses a score by more than
+ * `skipMargins` skips the next quality: on the calibration set, every copy
+ * that far below also failed one quality up. And each step up makes a file
+ * at least `minGrowthPerStep` times larger (measured: MozJPEG 1.11–2.32×,
+ * WebP 1.08–2.04×), so once even that would reach the original's size, no
+ * higher quality can give a smaller file. Both can only cost a little saving,
+ * never quality.
+ *
  * PNG is optimised losslessly with OxiPNG at `pngLevel` (0–6; 2 is Squoosh's
  * default: most of the saving in a fraction of the time), so every pixel is
  * kept.
@@ -59,6 +68,8 @@ export const SUPPORTED_EXTENSIONS = Object.freeze([
 export const IMAGE_POLICY = Object.freeze({
   qualities: Object.freeze([75, 85, 90, 95]),
   lookalike: Object.freeze({ luma: 0.97, chroma: 0.97, worstArea: 0.93 }),
+  skipMargins: Object.freeze({ luma: 0.02, chroma: 0.05, worstArea: 0.08 }),
+  minGrowthPerStep: Object.freeze({ mozjpeg: 1.1, webp: 1.05 }),
   pngLevel: 2,
   maxOutputBytes: 40_000_000,
   maxWidth: 8000,

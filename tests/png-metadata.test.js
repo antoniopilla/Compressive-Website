@@ -67,6 +67,27 @@ describe('stripPngMetadata', () => {
     expect(chunkBytes(bytes, 'iCCP')).toEqual(chunkBytes(png, 'iCCP'));
   });
 
+  it('replaces a colour profile with sRGB when the image is greyscale', () => {
+    // What OxiPNG produces from an all-grey, sRGB-tagged colour PNG: greyscale
+    // pixels that still carry an RGB profile, which is invalid PNG.
+    const grey = pngBytes({ width: 4, height: 4, colorType: 0, pixel: () => [128], icc: new Uint8Array(64).fill(3) });
+    expect(chunkTypes(grey)).toEqual(['IHDR', 'iCCP', 'IDAT', 'IEND']);
+    const { bytes, removed } = stripPngMetadata(grey);
+    expect(chunkTypes(bytes)).toEqual(['IHDR', 'sRGB', 'IDAT', 'IEND']);
+    expect(removed).toEqual([]);
+    const srgb = chunkBytes(bytes, 'sRGB');
+    expect(srgb[8]).toBe(0); // perceptual rendering intent
+    expect(new DataView(srgb.buffer).getUint32(9)).toBe(crc32(srgb.subarray(4, 9)) >>> 0);
+    expect(chunkBytes(bytes, 'IDAT')).toEqual(chunkBytes(grey, 'IDAT'));
+  });
+
+  it('keeps the colour profile of a colour image', () => {
+    const colour = pngBytes({ width: 4, height: 4, colorType: 2, icc: new Uint8Array(64).fill(3) });
+    const result = stripPngMetadata(colour);
+    expect(result.bytes).toBe(colour);
+    expect(chunkTypes(result.bytes)).toContain('iCCP');
+  });
+
   it('returns the same bytes when there is nothing to remove', () => {
     const png = pngBytes({ width: 2, height: 2 });
     const result = stripPngMetadata(png);

@@ -213,6 +213,19 @@ describe('image route decisions', () => {
     expect(result.files[0]).toMatchObject({ outcome: 'kept-original', reasonCode: 'verification-failed' });
   });
 
+  it('refuses a copy that came out smaller than the resize rule allows', async () => {
+    // The encoder's report and the file agree, but a 300 × 200 image needs no resize at all.
+    const runner = {
+      capabilities: { workers: true },
+      run: vi.fn().mockResolvedValue({ status: 'encoded', blob: encodedPng(150, 100), width: 150, height: 100, encoding: 'oxipng', quality: null }),
+    };
+    const studio = createFileStudio({ taskRunner: runner });
+    await studio.addFiles([makeFile(pngBytes({ width: 300, height: 200 }), 'a.png', 'image/png')]);
+    const result = await studio.prepare();
+    expect(result.files[0]).toMatchObject({ outcome: 'kept-original', reasonCode: 'verification-failed' });
+    expect(result.files[0].message).toMatch(/unexpected size/);
+  });
+
   it('keeps animated images without decoding them', async () => {
     const runner = { capabilities: { workers: true }, run: vi.fn() };
     const studio = createFileStudio({ taskRunner: runner });

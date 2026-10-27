@@ -3,9 +3,9 @@
  *
  * ZIP generation, PDF rewriting and image encoding normally run in a dedicated
  * Web Worker on the visitor's device (a Promise alone would still block the
- * page). When a browser cannot start workers, or cannot decode/encode images
- * inside one (no OffscreenCanvas, or Safari, where browser-image-compression
- * decodes through <img>), the task may run on the main thread instead — but
+ * page). When a browser cannot start workers, or cannot decode images inside
+ * one (no OffscreenCanvas there, as in Safari before 16.4), the task may run
+ * on the main thread instead — but
  * only within the smaller `LIMITS.mainThread` budgets the caller passes as
  * `mainThreadAllowed`. Larger work fails with a clear explanation rather than
  * freezing the tab.

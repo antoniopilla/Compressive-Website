@@ -18,7 +18,7 @@ import { IMAGE_POLICY, LIMITS, MIME_BY_EXTENSION, PDF_POLICY } from './policy.js
 import { ROUTES, CATEGORIES } from './router.js';
 import { CanceledError, StudioError, isCanceledError } from './errors.js';
 import { archiveFileName, assignEntryNames, preparedFileName } from './filenames.js';
-import { decideImageOutcome, evaluateImageConstraints, preflightImage } from './image-policy.js';
+import { decideImageOutcome, evaluateImageConstraints, expectedResize, preflightImage } from './image-policy.js';
 import { readBytes } from './inspect/bytes.js';
 import { detectFormat } from './inspect/signatures.js';
 import { probeRaster } from './inspect/raster-probe.js';
@@ -457,6 +457,12 @@ async function prepareImage(entry, context) {
     if (!outputDimensions || outputDimensions.width !== encoded.width || outputDimensions.height !== encoded.height) {
       return keepOriginal('verification-failed', 'The compressed copy could not be verified. Your original is kept unchanged.');
     }
+  }
+  // The copy must be exactly the size the resize rule gives, which catches a
+  // browser that silently drew the image smaller than it was asked to.
+  const intended = expectedResize(source, IMAGE_POLICY.maxWidth);
+  if (encoded.width !== intended.width || encoded.height !== intended.height) {
+    return keepOriginal('verification-failed', 'The compressed copy came out at an unexpected size. Your original is kept unchanged.');
   }
 
   const decision = decideImageOutcome({

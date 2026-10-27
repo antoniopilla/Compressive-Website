@@ -14,6 +14,9 @@
  *
  *      drawFileInCanvas → handleMaxWidthOrHeight → (followExifOrientation)
  *
+ *    (in a Safari worker, createImageBitmap takes drawFileInCanvas's place;
+ *    see libraryDecodesWithImg)
+ *
  *    and those pixels are the reference. JPEG (MozJPEG) and WebP (libwebp)
  *    are encoded at each of IMAGE_POLICY.qualities in turn, lowest first; each
  *    result is decoded again by the browser and compared with the reference
@@ -35,6 +38,7 @@
 
 import imageCompression from 'browser-image-compression';
 import { StudioError, looksLikeOutOfMemory } from '../errors.js';
+import { nextQuality } from '../image-policy.js';
 import { looksTheSame, measureSimilarity } from '../visual-check.js';
 import { encodeJpeg, encodePng, encodeWebp, optimisePng } from './codecs.js';
 import { stripPngMetadata } from './png-metadata.js';
@@ -43,8 +47,8 @@ const insideWorker =
   typeof globalThis.WorkerGlobalScope === 'function' && globalThis instanceof globalThis.WorkerGlobalScope;
 
 /**
- * Throws a fallback-eligible error when this environment cannot decode
- * images the way the library expects.
+ * Throws a fallback-eligible error when this worker cannot decode and draw
+ * images (no OffscreenCanvas or createImageBitmap, as in Safari before 16.4).
  */
 function assertCanvasSupport() {
   if (!insideWorker) return;
@@ -55,17 +59,53 @@ function assertCanvasSupport() {
   if (!probe.getContext('2d')) {
     throw new StudioError('worker-canvas-unsupported', 'This browser cannot process images in the background.');
   }
+}
+
+/**
+ * Whether browser-image-compression would decode through <img>: it skips
+ * createImageBitmap on Safari (iOS and desktop). <img> does not exist in
+ * workers, so there this task decodes with createImageBitmap itself, and the
+ * work stays off the page instead of freezing it.
+ */
+function libraryDecodesWithImg() {
   let browser = 'ETC';
   try {
     browser = imageCompression.getBrowserName();
   } catch {
     // getBrowserName touches `document` for unknown browsers; treat as generic.
   }
-  // The library skips createImageBitmap on Safari and decodes through <img>,
-  // which does not exist inside workers.
-  if (browser === 'IOS' || browser === 'DESKTOP_SAFARI') {
-    throw new StudioError('worker-decode-unsupported', 'This browser decodes images on the page rather than in the background.');
+  return browser === 'IOS' || browser === 'DESKTOP_SAFARI';
+}
+
+/** @param {Blob} file */
+async function decodeWithBitmap(file) {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const canvas = createCanvas(bitmap.width, bitmap.height);
+    /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d')).drawImage(bitmap, 0, 0);
+    return canvas;
+  } finally {
+    bitmap.close();
   }
+}
+
+/**
+ * A 2 × 1 JPEG tagged with EXIF orientation 6 (rotate 90°), the same probe the
+ * library's isAutoOrientationInBrowser uses. Decoding it the way the image is
+ * decoded shows whether createImageBitmap already applies orientation, so it
+ * is never applied twice, or not at all.
+ */
+const ORIENTATION_PROBE = '/9j/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAYAAAAAAAD/2wCEAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAf/AABEIAAEAAgMBEQACEQEDEQH/xABKAAEAAAAAAAAAAAAAAAAAAAALEAEAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8H//2Q==';
+let bitmapOrientation = null;
+function bitmapAppliesOrientation() {
+  bitmapOrientation ??= (async () => {
+    const bytes = Uint8Array.from(atob(ORIENTATION_PROBE), (character) => character.charCodeAt(0));
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+    const rotated = bitmap.width === 1 && bitmap.height === 2;
+    bitmap.close();
+    return rotated;
+  })();
+  return bitmapOrientation;
 }
 
 /** @param {number} width @param {number} height */
@@ -81,23 +121,42 @@ function readPixels(canvas) {
 }
 
 /**
- * Decodes an encoded copy the way the browser will show it.
+ * True when every byte is zero, which is what a canvas returns when the
+ * browser failed to draw into it (for example, past a device's canvas limit).
+ * A blank reference would pass any comparison, so it must never be encoded.
+ *
+ * @param {ImageData} pixels
+ */
+function isBlank(pixels) {
+  const words = new Uint32Array(pixels.data.buffer, pixels.data.byteOffset, pixels.data.byteLength / 4);
+  for (let index = 0; index < words.length; index += 1) {
+    if (words[index] !== 0) return false;
+  }
+  return true;
+}
+
+/**
+ * Decodes an encoded copy the way the browser will show it. The bitmap and the
+ * canvas are released as soon as the pixels are out, so trying several
+ * qualities never holds more than one decoded copy at a time.
  *
  * @param {Blob} blob
  * @param {{ width: number, height: number }} expected
- * @param {(canvas: OffscreenCanvas | HTMLCanvasElement) => OffscreenCanvas | HTMLCanvasElement} track
  */
-async function decodeCopy(blob, expected, track) {
+async function decodeCopy(blob, expected) {
   const bitmap = await createImageBitmap(blob);
+  let canvas = null;
   try {
     if (bitmap.width !== expected.width || bitmap.height !== expected.height) {
       throw new StudioError('verification-failed', 'The compressed copy decoded at a different size.');
     }
-    const canvas = track(createCanvas(bitmap.width, bitmap.height));
+    canvas = createCanvas(bitmap.width, bitmap.height);
     /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d')).drawImage(bitmap, 0, 0);
+    bitmap.close();
     return readPixels(canvas);
   } finally {
     bitmap.close();
+    if (canvas) imageCompression.cleanupCanvasMemory(canvas);
   }
 }
 
@@ -133,11 +192,16 @@ export async function compressImage(payload, context) {
 
   try {
     context.onProgress({ phase: 'decoding', fraction: 0.05 });
+    const ownDecode = insideWorker && libraryDecodesWithImg();
     let decoded;
     try {
-      const [image, canvas] = await imageCompression.drawFileInCanvas(file, { fileType: mimeType });
-      if (image && typeof image.close === 'function') image.close(); // release the ImageBitmap promptly
-      decoded = track(canvas);
+      if (ownDecode) {
+        decoded = track(await decodeWithBitmap(file));
+      } else {
+        const [image, canvas] = await imageCompression.drawFileInCanvas(file, { fileType: mimeType });
+        if (image && typeof image.close === 'function') image.close(); // release the ImageBitmap promptly
+        decoded = track(canvas);
+      }
     } catch (error) {
       if (looksLikeOutOfMemory(error)) throw error;
       throw new StudioError('decode-failed', 'This image could not be decoded. It may be damaged or use a feature browsers do not support.', {
@@ -146,7 +210,7 @@ export async function compressImage(payload, context) {
     }
     context.throwIfCanceled();
 
-    const autoOriented = await imageCompression.isAutoOrientationInBrowser();
+    const autoOriented = ownDecode ? await bitmapAppliesOrientation() : await imageCompression.isAutoOrientationInBrowser();
     const expected = autoOriented
       ? { width: probe.orientedWidth, height: probe.orientedHeight }
       : { width: probe.width, height: probe.height };
@@ -156,14 +220,22 @@ export async function compressImage(payload, context) {
 
     context.onProgress({ phase: 'resizing', fraction: 0.2 });
     const resized = track(imageCompression.handleMaxWidthOrHeight(decoded, { maxWidthOrHeight: policy.maxWidth }));
+    // The library returns the same canvas when no resize was needed, and
+    // empties every canvas it replaces, so compare canvases, not their sizes.
+    const wasResized = resized !== decoded;
     const oriented =
       autoOriented || probe.orientation === 1
         ? resized
         : track(imageCompression.followExifOrientation(resized, probe.orientation));
-    const wasResized = resized.width !== decoded.width || resized.height !== decoded.height;
     const reference = readPixels(oriented);
     const size = { width: oriented.width, height: oriented.height };
     const shape = { ...size, autoOriented, resized: wasResized };
+    // Only the pixels are needed from here on: free the canvas now rather than
+    // holding a second full-size copy through every quality tried.
+    imageCompression.cleanupCanvasMemory(oriented);
+    if (isBlank(reference)) {
+      throw new StudioError('decode-failed', 'The browser returned a blank image while reading this file, so it was not compressed.');
+    }
     context.throwIfCanceled();
 
     if (mimeType === 'image/png') {
@@ -173,38 +245,55 @@ export async function compressImage(payload, context) {
     }
 
     const encoding = mimeType === 'image/jpeg' ? 'mozjpeg' : 'webp';
-    /** @type {({ quality: number } | { lossless: true })[]} */
-    const settings = policy.qualities.map((quality) => ({ quality }));
-    if (probe.format === 'webp' && probe.lossless) settings.push({ lossless: true });
-
-    let tried = null;
-    for (const [index, setting] of settings.entries()) {
-      const share = 0.3 + (0.65 * index) / settings.length;
+    const losslessSource = probe.format === 'webp' && probe.lossless;
+    const attempts = policy.qualities.length + (losslessSource ? 1 : 0);
+    let attempt = 0;
+    /**
+     * Encodes once and runs the visual check. `similarity` is null when the
+     * copy is no smaller than the original and the image was not resized: a
+     * higher setting would only be bigger, so the original is the better choice.
+     *
+     * @param {{ quality: number } | { lossless: true }} setting
+     */
+    const tryEncoding = async (setting) => {
+      const share = 0.3 + (0.65 * attempt) / attempts;
+      attempt += 1;
       context.onProgress({ phase: 'encoding', fraction: share });
       const bytes = encoding === 'mozjpeg' ? await encodeJpeg(reference, setting.quality) : await encodeWebp(reference, setting);
       context.throwIfCanceled();
       const blob = new Blob([bytes], { type: mimeType });
-      const quality = 'quality' in setting ? setting.quality : null;
-      // Higher settings only make bigger files. When the pixels were not
-      // resized, the original is then the better choice.
-      if (!wasResized && blob.size >= file.size) return { status: 'no-saving', ...shape, quality, bytes: blob.size, tried };
+      if (!wasResized && blob.size >= file.size) return { blob, similarity: null };
+      context.onProgress({ phase: 'comparing', fraction: share + 0.65 / attempts / 2 });
+      return { blob, similarity: measureSimilarity(reference, await decodeCopy(blob, size), context) };
+    };
 
-      context.onProgress({ phase: 'comparing', fraction: share + 0.65 / settings.length / 2 });
-      const copy = await decodeCopy(blob, size, track);
-      const similarity = measureSimilarity(reference, copy, context);
-      if (looksTheSame(similarity, policy.lookalike)) {
-        return {
-          status: 'encoded',
-          blob,
-          ...shape,
-          encoding: quality === null ? 'webp-lossless' : encoding,
-          quality,
-          similarity,
-        };
+    let tried = null;
+    let outcome = { status: 'looks-different' };
+    for (let index = 0; ; ) {
+      const quality = policy.qualities[index];
+      const { blob, similarity } = await tryEncoding({ quality });
+      if (!similarity) {
+        outcome = { status: 'no-saving', quality };
+        break;
       }
+      if (looksTheSame(similarity, policy.lookalike)) return { status: 'encoded', blob, ...shape, encoding, quality, similarity };
       tried = { quality, similarity };
+      const step = nextQuality({ index, similarity, bytes: blob.size, sourceBytes: file.size, resized: wasResized, encoding, policy });
+      if ('next' in step) {
+        index = step.next;
+        continue;
+      }
+      if (step.stop === 'no-saving') outcome = { status: 'no-saving', quality: step.quality };
+      break;
     }
-    return { status: 'looks-different', ...shape, tried };
+    // A lossless WebP source gets one more, lossless, try.
+    if (losslessSource) {
+      const { blob, similarity } = await tryEncoding({ lossless: true });
+      if (similarity && looksTheSame(similarity, policy.lookalike)) {
+        return { status: 'encoded', blob, ...shape, encoding: 'webp-lossless', quality: null, similarity };
+      }
+    }
+    return { ...outcome, ...shape, tried };
   } finally {
     for (const canvas of canvases) imageCompression.cleanupCanvasMemory(canvas);
   }

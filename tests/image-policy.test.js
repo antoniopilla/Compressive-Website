@@ -1,7 +1,41 @@
 import { describe, expect, it } from 'vitest';
 import imageCompression from 'browser-image-compression';
-import { decideImageOutcome, evaluateImageConstraints, expectedResize, preflightImage } from '../src/engine/image-policy.js';
+import { decideImageOutcome, evaluateImageConstraints, expectedResize, nextQuality, preflightImage } from '../src/engine/image-policy.js';
 import { IMAGE_POLICY } from '../src/engine/policy.js';
+
+describe('nextQuality', () => {
+  const nearly = { luma: 0.965, chroma: 0.975, worstArea: 0.91 }; // just short of the 0.93 area minimum
+  const far = { luma: 0.99, chroma: 0.99, worstArea: 0.8 }; // 0.13 short: hopeless one quality up
+  const input = (overrides) => ({ index: 0, similarity: nearly, bytes: 100_000, sourceBytes: 1_000_000, resized: false, encoding: 'mozjpeg', ...overrides });
+
+  it('tries the next quality after a near miss', () => {
+    expect(nextQuality(input())).toEqual({ next: 1 });
+  });
+
+  it('skips a quality when a copy misses by far', () => {
+    expect(nextQuality(input({ similarity: far }))).toEqual({ next: 2 });
+    expect(nextQuality(input({ similarity: { ...nearly, chroma: 0.91 } }))).toEqual({ next: 2 });
+    // Never past the highest quality.
+    expect(nextQuality(input({ index: 2, similarity: far }))).toEqual({ next: 3 });
+  });
+
+  it('stops after the highest quality', () => {
+    expect(nextQuality(input({ index: IMAGE_POLICY.qualities.length - 1 }))).toEqual({ stop: 'exhausted' });
+  });
+
+  it('stops when the next copy cannot be smaller than the original', () => {
+    // 920 kB × 1.1 ≥ 1 MB: quality 95 would be at least as large as the original.
+    expect(nextQuality(input({ index: 2, bytes: 920_000 }))).toEqual({ stop: 'no-saving', quality: 95 });
+    // WebP grows less per step, so the same copy still leaves room.
+    expect(nextQuality(input({ index: 2, bytes: 920_000, encoding: 'webp' }))).toEqual({ next: 3 });
+    // A skip counts both steps.
+    expect(nextQuality(input({ bytes: 830_000, similarity: far }))).toEqual({ stop: 'no-saving', quality: 90 });
+  });
+
+  it('keeps going for a resized image, where any compliant copy is worth having', () => {
+    expect(nextQuality(input({ index: 2, bytes: 2_000_000, resized: true }))).toEqual({ next: 3 });
+  });
+});
 
 const probe = (overrides = {}) => ({
   format: 'jpeg',

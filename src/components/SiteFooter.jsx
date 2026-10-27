@@ -25,6 +25,12 @@ export default function SiteFooter() {
             <li>
               <a href="#limits">Limits</a>
             </li>
+            <li>
+              {/* A new tab, so following it never clears the files chosen here. */}
+              <a href="/third-party-licences.txt" target="_blank" rel="noopener">
+                Open-source licences<span className="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            </li>
           </ul>
         </nav>
         <a className={styles.top} href="#tools">

@@ -74,6 +74,28 @@ export async function encodePhoto({ type, width, height, quality }) {
   return Buffer.from(await encoder.default({ data, width, height }, { quality }));
 }
 
+/**
+ * Whether this browser's workers have OffscreenCanvas, which image work in the
+ * background needs. Checked on a blank page, because the site's CSP rightly
+ * blocks the blob: worker used for the check.
+ */
+export async function workersCanDraw(context) {
+  const page = await context.newPage();
+  try {
+    return await page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const source = new Blob(['postMessage(typeof OffscreenCanvas === "function")'], { type: 'text/javascript' });
+          const worker = new Worker(URL.createObjectURL(source));
+          worker.onmessage = (event) => resolve(event.data);
+          worker.onerror = () => resolve(false);
+        }),
+    );
+  } finally {
+    await page.close();
+  }
+}
+
 /** Inserts an EXIF APP1 segment with the given orientation after the JFIF header. */
 export function withExifOrientation(jpeg, orientation) {
   const exif = concat(Uint8Array.from('Exif\0\0', (c) => c.charCodeAt(0)), tiffOrientation(orientation));

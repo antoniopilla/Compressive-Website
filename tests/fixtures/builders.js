@@ -81,7 +81,8 @@ export function tiffOrientation(orientation) {
  * @param {number} [options.orientation] Adds an eXIf chunk.
  */
 export function pngBytes({ width, height, bitDepth = 8, colorType = 6, pixel, animation, icc, orientation }) {
-  const channels = colorType === 6 ? 4 : 3;
+  // Greyscale (0), RGB (2), greyscale with alpha (4) and RGBA (6).
+  const channels = { 0: 1, 2: 3, 4: 2, 6: 4 }[colorType];
   const bytesPerSample = bitDepth / 8;
   const rowLength = 1 + width * channels * bytesPerSample;
   const raw = new Uint8Array(rowLength * height);
