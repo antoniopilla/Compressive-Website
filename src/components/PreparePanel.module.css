@@ -1,0 +1,154 @@
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.empty {
+  color: var(--text-muted);
+}
+
+.plan {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.plan[data-route='invalid'] {
+  border-color: color-mix(in srgb, var(--critical) 45%, var(--border));
+  background: var(--critical-soft);
+}
+
+.planIcon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+.plan[data-route='invalid'] .planIcon {
+  background: var(--surface);
+  color: var(--critical);
+}
+
+.plan[data-route='protected-passthrough'] .planIcon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.planText {
+  min-width: 0;
+}
+
+.planLabel {
+  font-weight: 700;
+}
+
+.planTotals {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.planSummary {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.93rem;
+}
+
+.errors {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-left: 18px;
+  color: var(--critical);
+  font-size: 0.9rem;
+}
+
+.errorName {
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.progressBlock {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.progressLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+}
+
+.progressPercent {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 200ms ease;
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.failure {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--critical-soft);
+  color: var(--critical);
+  font-size: 0.92rem;
+}
+
+.failure svg {
+  flex: none;
+  margin-top: 2px;
+}

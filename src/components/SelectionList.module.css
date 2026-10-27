@@ -1,0 +1,131 @@
+.wrapper {
+  margin-top: 14px;
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.row[data-invalid] {
+  border-color: color-mix(in srgb, var(--critical) 45%, var(--border));
+  background: color-mix(in srgb, var(--critical-soft) 55%, var(--surface));
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.icon[data-category='vector'] {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.icon[data-category='raster'] {
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+}
+
+.icon[data-category='pdf'] {
+  background: var(--critical-soft);
+  color: var(--critical);
+}
+
+.icon[data-category='psd'] {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.main {
+  min-width: 0;
+}
+
+.name {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.status:empty {
+  display: none;
+}
+
+.pending,
+.error,
+.note,
+.health {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.86rem;
+}
+
+.pending {
+  color: var(--text-muted);
+  align-items: center;
+}
+
+.error {
+  color: var(--critical);
+}
+
+.error svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.note {
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 2px;
+  margin: -6px -6px 0 0;
+}
+
+@media (max-width: 440px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .actions {
+    grid-column: 2;
+    margin: 0 0 0 -10px;
+  }
+}

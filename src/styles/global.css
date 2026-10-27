@@ -1,0 +1,314 @@
+/*
+ * Compressive — design tokens and base styles.
+ * Light and dark themes share one set of semantic tokens. The theme follows the
+ * operating system unless the visitor picks one (html[data-theme]).
+ */
+
+:root {
+  color-scheme: light;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, monospace;
+
+  --bg: #f4f6fb;
+  --bg-accent: radial-gradient(1200px 500px at 10% -10%, #e3ebff 0%, transparent 60%);
+  --surface: #ffffff;
+  --surface-2: #f2f5fb;
+  --surface-3: #e8edf6;
+  --border: #d9e0ec;
+  --border-strong: #b7c3d8;
+  --text: #0f172a;
+  --text-muted: #4a5870;
+
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-contrast: #ffffff;
+  --accent-soft: #e5edff;
+  --accent-soft-text: #1e3a8a;
+  --focus-ring: #2563eb;
+
+  --success: #15803d;
+  --success-soft: #e3f7ea;
+  --warning: #9a5b00;
+  --warning-soft: #fff4d6;
+  --critical: #b91c1c;
+  --critical-soft: #fde8e8;
+  --info: #0b6aa3;
+  --info-soft: #e2f3fc;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-md: 0 1px 2px rgb(15 23 42 / 5%), 0 8px 24px rgb(15 23 42 / 6%);
+  --gutter: 16px;
+  --content-max: 1200px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a1020;
+  --bg-accent: radial-gradient(1200px 500px at 10% -10%, #14234a 0%, transparent 60%);
+  --surface: #111a2e;
+  --surface-2: #16213a;
+  --surface-3: #1d2a47;
+  --border: #26365a;
+  --border-strong: #3a4d76;
+  --text: #e7edf7;
+  --text-muted: #a8b6cc;
+
+  --accent: #7aa5ff;
+  --accent-hover: #9dbcff;
+  --accent-contrast: #0a1020;
+  --accent-soft: #1a2a4f;
+  --accent-soft-text: #c9d9ff;
+  --focus-ring: #9dbcff;
+
+  --success: #5fd68a;
+  --success-soft: #12301f;
+  --warning: #f5c04e;
+  --warning-soft: #33280c;
+  --critical: #ff8a8a;
+  --critical-soft: #3b1518;
+  --info: #5cc4f5;
+  --info-soft: #0d2a3c;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 25%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0a1020;
+    --bg-accent: radial-gradient(1200px 500px at 10% -10%, #14234a 0%, transparent 60%);
+    --surface: #111a2e;
+    --surface-2: #16213a;
+    --surface-3: #1d2a47;
+    --border: #26365a;
+    --border-strong: #3a4d76;
+    --text: #e7edf7;
+    --text-muted: #a8b6cc;
+  
+    --accent: #7aa5ff;
+    --accent-hover: #9dbcff;
+    --accent-contrast: #0a1020;
+    --accent-soft: #1a2a4f;
+    --accent-soft-text: #c9d9ff;
+    --focus-ring: #9dbcff;
+
+    --success: #5fd68a;
+    --success-soft: #12301f;
+    --warning: #f5c04e;
+    --warning-soft: #33280c;
+    --critical: #ff8a8a;
+    --critical-soft: #3b1518;
+    --info: #5cc4f5;
+    --info-soft: #0d2a3c;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 25%);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-accent), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  z-index: 10;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+  color: var(--accent-contrast);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+  max-width: 100%;
+  text-align: center;
+}
+
+.btn svg {
+  flex: none;
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: var(--accent-hover);
+  color: var(--accent-contrast);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding-inline: 12px;
+}
+
+.btn-ghost:not(:disabled):hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--critical);
+}
+
+.btn-danger:not(:disabled):hover {
+  background: var(--critical-soft);
+}
+
+.btn-icon {
+  min-width: 44px;
+  padding: 10px;
+}
+
+.btn-lg {
+  min-height: 52px;
+  padding: 14px 24px;
+  font-size: 1.02rem;
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

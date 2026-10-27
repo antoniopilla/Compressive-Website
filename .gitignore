@@ -1,0 +1,35 @@
+# Dependencies (reinstalled with `npm install`; package-lock.json stays tracked)
+node_modules/
+
+# Build output
+dist/
+*.local
+
+# Local environment files (this project needs none, but never commit them)
+.env
+.env.*
+!.env.example
+
+# Test reports and caches
+coverage/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+.vitest/
+
+# Private artwork used for manual testing: keep customer files out of Git
+fixtures/private/
+private-artwork/
+*.private.*
+
+# Editor and OS clutter
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local AI-assistant permissions (contain machine-specific paths)
+.claude/settings.local.json

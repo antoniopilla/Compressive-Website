@@ -1,0 +1,112 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 10px var(--gutter);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.mark {
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+
+.mark rect {
+  fill: var(--accent);
+}
+
+.mark path {
+  fill: none;
+  stroke: var(--accent-contrast);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.mark circle {
+  fill: var(--accent-soft);
+}
+
+.name {
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.theme {
+  display: inline-flex;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.themeOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  min-width: 36px;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.themeOption[data-checked] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.themeOption:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* Browsers without :has() (such as Firefox before 121) still get a visible focus ring. */
+@supports not selector(:has(*)) {
+  .themeOption:focus-within {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+.themeLabel {
+  display: none;
+}
+
+@media (min-width: 560px) {
+  .themeLabel {
+    display: inline;
+  }
+}
