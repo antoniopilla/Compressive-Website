@@ -86,6 +86,10 @@ test('serves the security headers that back the privacy promise', async ({ page,
   expect(csp).toContain("script-src 'self' 'wasm-unsafe-eval';");
   expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
   expect(csp).toContain("worker-src 'self'");
+  // The built page carries the policy too, so it still holds on a host that ignores public/_headers.
+  const metaPolicy = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
+  expect(metaPolicy).toContain("connect-src 'self'");
+  expect(metaPolicy).toContain("script-src 'self' 'wasm-unsafe-eval';");
   await expect(page.getByText('Your files stay on your device.')).toBeVisible();
 });
 

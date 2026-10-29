@@ -111,8 +111,41 @@ function readPagesHeaders() {
   return headers;
 }
 
+/** CSP directives that only work as a header: browsers ignore them in a <meta> tag and log an error. */
+const HEADER_ONLY_CSP_DIRECTIVES = new Set(['frame-ancestors', 'report-uri', 'report-to', 'sandbox']);
+
+/**
+ * Writes the Content-Security-Policy from `_headers` into the built
+ * index.html as a <meta> tag, so the page keeps it (including
+ * `connect-src 'self'`, which backs the "your files stay on your device"
+ * promise) even on a host that ignores `_headers`. The header stays the main
+ * policy; the tag leaves out what only a header can do.
+ */
+function contentSecurityPolicyMeta() {
+  return {
+    name: 'compressive:csp-meta',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const policy = readPagesHeaders()['Content-Security-Policy'];
+        if (!policy) throw new Error('public/_headers defines no Content-Security-Policy.');
+        const directives = policy
+          .split(';')
+          .map((directive) => directive.trim())
+          .filter((directive) => directive && !HEADER_ONLY_CSP_DIRECTIVES.has(directive.split(/\s+/)[0].toLowerCase()));
+        const content = directives.join('; ').replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+        // Right after the charset, so the policy is in force before any script or stylesheet loads.
+        const charset = /<meta charset=[^>]*>/i;
+        if (!charset.test(html)) throw new Error('index.html has no <meta charset> to place the CSP after.');
+        return html.replace(charset, (tag) => `${tag}\n    <meta http-equiv="Content-Security-Policy" content="${content}" />`);
+      },
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), thirdPartyLicences()],
+  plugins: [react(), thirdPartyLicences(), contentSecurityPolicyMeta()],
   optimizeDeps: {
     // The jSquash encoders find their .wasm files next to their own modules;
     // pre-bundling them for the dev server would move the code away from them.
