@@ -10,7 +10,6 @@ import { TOOLS } from './ui/tools.js';
 import { ACCEPT } from './ui/files.js';
 import { SECTION_IDS } from './ui/sections.js';
 import { useActiveSection } from './hooks/useActiveSection.js';
-import { useReveal } from './hooks/useReveal.js';
 import SiteHeader from './components/SiteHeader.jsx';
 import Hero from './components/Hero.jsx';
 import Panel from './components/Panel.jsx';
@@ -68,7 +67,6 @@ export default function App() {
   const toolInputRef = useRef(null);
   const pendingToolRef = useRef(null);
   const activeSection = useActiveSection(SECTION_IDS);
-  const workspaceReveal = useReveal();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -141,13 +139,7 @@ export default function App() {
       <main id="main" className={styles.main}>
         <Hero onTool={openTool} onChooseFiles={chooseAnyFiles} />
 
-        <section
-          id="workspace"
-          ref={workspaceReveal}
-          className={styles.workspaceSection}
-          tabIndex={-1}
-          aria-labelledby="workspace-title"
-        >
+        <section id="workspace" className={styles.workspaceSection} tabIndex={-1} aria-labelledby="workspace-title">
           <div className={styles.sectionHeading}>
             <h2 id="workspace-title" className={styles.sectionTitle}>
               Compress your files
@@ -158,6 +150,7 @@ export default function App() {
             <Panel
               id="files"
               step={1}
+              tone="support"
               title="Add files"
               description="One image or PDF is compressed on its own. Several files are packed into one ZIP."
               actions={
@@ -191,7 +184,7 @@ export default function App() {
               />
             </Panel>
 
-            <Panel id="compress" step={2} title="Compress and download">
+            <Panel id="compress" step={2} tone="cool" title="Compress and download">
               <PreparePanel snapshot={snapshot} onPrepare={actions.prepare} onCancel={actions.cancel} onRetry={actions.retry} />
               {snapshot.result ? (
                 <ResultsPanel

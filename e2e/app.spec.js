@@ -29,9 +29,9 @@ import {
 
 const SCREENS = 'test-results/screens';
 
-/** Page backgrounds from the design tokens in src/styles/global.css. */
-const LIGHT_BACKGROUND = 'rgb(246, 247, 251)';
-const DARK_BACKGROUND = 'rgb(13, 17, 23)';
+/** Page backgrounds (the ground colour) from the design tokens in src/styles/global.css. */
+const LIGHT_BACKGROUND = 'rgb(241, 242, 250)';
+const DARK_BACKGROUND = 'rgb(29, 26, 34)';
 
 /** Network requests and console errors seen during the current test. */
 let requests = [];
@@ -98,7 +98,8 @@ test('ships the licences of the open-source software it includes', async ({ requ
   for (const heading of ['MozJPEG (based on libjpeg-turbo), compiled into @jsquash/jpeg', 'libwebp, compiled into @jsquash/webp', 'OxiPNG, compiled into @jsquash/oxipng']) {
     expect(text).toContain(heading);
   }
-  for (const name of ['react', 'jszip', 'pdf-lib', 'browser-image-compression', '@jsquash/jpeg', 'wasm-feature-detect']) {
+  // The bundled Instrument Sans font's OFL licence must travel with the font files.
+  for (const name of ['react', 'jszip', 'pdf-lib', 'browser-image-compression', '@jsquash/jpeg', 'wasm-feature-detect', '@fontsource-variable/instrument-sans']) {
     expect(text).toMatch(new RegExp(`^- ${name.replace('/', '\\/')} \\d`, 'm'));
   }
 });
@@ -502,14 +503,11 @@ test('the main navigation marks the current section and jumps to each one', asyn
   const nav = page.getByRole('navigation', { name: 'Main' });
   const link = (name) => nav.getByRole('link', { name, exact: true });
   await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
-  // Sections below the fold wait to ease in until they are scrolled to.
-  await expect(page.locator('#privacy')).toHaveAttribute('data-reveal', 'pending');
 
   await link('Privacy').click();
   await expect(page.getByRole('heading', { name: 'Privacy', level: 2 })).toBeInViewport();
   await expect(link('Privacy')).toHaveAttribute('aria-current', 'location');
   await expect(link('Tools')).not.toHaveAttribute('aria-current');
-  await expect(page.locator('#privacy')).toHaveAttribute('data-reveal', 'shown');
 
   await link('Compress').click();
   await expect(link('Compress')).toHaveAttribute('aria-current', 'location');
@@ -550,24 +548,25 @@ test('phones get a bottom navigation bar with thumb-sized links', async ({ page,
   await nav.getByRole('link', { name: 'How it works' }).click();
   await expect(nav.getByRole('link', { name: 'How it works' })).toHaveAttribute('aria-current', 'location');
 
-  // The page reserves room for the bar, so it never covers the last links.
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  // The page reserves room for the bar, so it never covers the last links. Jump straight to the
+  // bottom: the page scrolls smoothly, and Firefox would otherwise still be moving when measured.
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
   await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('aria-current', 'location');
   const backToTop = await page.getByRole('link', { name: 'Back to top' }).boundingBox();
   expect(backToTop.y + backToTop.height).toBeLessThanOrEqual(bar.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
 
-test('reduced motion shows every section at once, without movement', async ({ page, baseURL }) => {
+test('reduced motion removes movement and transitions', async ({ page, baseURL }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(baseURL);
-  await expect(page.locator('[data-reveal="pending"]')).toHaveCount(0);
-  expect(await page.locator('#privacy').evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
-  const durations = await page
-    .getByRole('button', { name: 'Compress PNG' })
-    .evaluate((element) => getComputedStyle(element).transitionDuration.split(',').map(parseFloat));
+  const tool = page.getByRole('button', { name: 'Compress PNG' });
+  const durations = await tool.evaluate((element) => getComputedStyle(element).transitionDuration.split(',').map(parseFloat));
   expect(durations.every((seconds) => seconds < 0.001)).toBe(true);
+  // Hovering no longer raises the button: any transform left is the identity.
+  await tool.hover();
+  expect(await tool.evaluate((element) => getComputedStyle(element).transform)).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
 });
 
 test('print size fields explain mistakes inline and confirm a valid size', async ({ page }) => {

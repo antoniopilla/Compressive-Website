@@ -1,47 +1,51 @@
 .hero {
   display: grid;
-  gap: var(--space-10);
-  padding-top: var(--space-10);
+  gap: var(--dp-spacing-gap);
+  padding-top: var(--space-4);
 }
 
-/* Page-load entrance: content fades and slides up, in reading order. */
-.intro,
-.toolsBlock,
-.promises {
-  animation: enter var(--duration-slow) var(--ease-out) both;
-}
-
-.toolsBlock {
-  animation-delay: 60ms;
-}
-
-.promises {
-  animation-delay: 120ms;
+/* The lead cushion: copy on the left; the sculpture and the tools on the right. */
+.cushion {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    'intro sculpture'
+    'intro tools';
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-16);
+  border-radius: var(--dp-radius-tray);
+  background: var(--dp-color-accent);
+  box-shadow: var(--shadow-tray-accent);
 }
 
 .intro {
+  grid-area: intro;
+  align-self: center;
   display: grid;
-  gap: var(--space-4);
-  max-width: var(--content-narrow);
+  gap: var(--dp-spacing-paragraph-gap);
 }
 
+/* A label inlaid in the cushion, not a button. */
 .kicker {
   justify-self: start;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--dp-radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-well);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
 }
 
 .title {
   font-size: var(--text-display);
-  letter-spacing: -0.025em;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
 }
 
 .lead {
-  max-width: 58ch;
+  max-width: 34em;
   color: var(--color-text-muted);
   font-size: var(--text-lg);
 }
@@ -50,60 +54,79 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3) var(--space-5);
+  gap: var(--space-3) var(--space-6);
   margin-top: var(--space-2);
 }
 
+/* A ghost action: plain text beside the primary button. */
 .secondaryLink {
   display: inline-flex;
   align-items: center;
   min-height: var(--control-height);
-  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
 }
 
 .toolsBlock {
+  grid-area: tools;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .toolsTitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
 }
 
+/* Two columns where a tool's label fits on one or two lines, otherwise one. */
 .tools {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
   gap: var(--space-3);
   list-style: none;
 }
 
-/* Tool cards: the same card style as the rest of the site, lifting 2px on hover. */
+/* Tool buttons: cream cushions with a pastel well, raised on hover and pressed on click. */
 .tool {
+  --tone: var(--dp-color-surface-support);
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: calc(var(--icon-tile) + 2 * var(--space-4));
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
+  height: 100%;
+  min-height: calc(var(--icon-tile) + var(--space-6));
+  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2);
+  border: 0;
+  border-radius: var(--dp-radius-surface);
   background: var(--color-surface);
+  box-shadow: var(--shadow-control);
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
   transition:
-    transform var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
+    transform var(--dp-motion-interaction) var(--ease-out),
+    box-shadow var(--dp-motion-interaction) var(--ease-out);
+}
+
+.tools li:nth-child(4n + 2) .tool {
+  --tone: var(--dp-color-surface-compare);
+}
+
+.tools li:nth-child(4n + 3) .tool {
+  --tone: var(--dp-color-surface-warm);
+}
+
+.tools li:nth-child(4n + 4) .tool {
+  --tone: var(--dp-color-surface-cool);
 }
 
 .tool:hover {
   transform: translateY(var(--hover-lift));
-  border-color: var(--color-primary);
+  box-shadow: var(--shadow-raised);
 }
 
 .tool:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(var(--press-shift)) scale(var(--press-scale));
+  box-shadow: var(--shadow-pressed);
 }
 
 .toolIcon {
@@ -112,9 +135,9 @@
   place-items: center;
   width: var(--icon-tile);
   height: var(--icon-tile);
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: var(--shadow-control);
 }
 
 .toolText {
@@ -124,46 +147,207 @@
 
 .toolLabel {
   font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
 }
 
 .toolHint {
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
 }
 
+/*
+ * The sculpture: static molded shapes in their own reserved area, lit from
+ * the upper left like everything else. Sizes and positions are fractions of
+ * the box, which keeps a 2:1 shape, so the cluster scales as one piece.
+ */
+.sculpture {
+  --cast: 12px 18px 28px -10px var(--clay-shade-accent);
+  grid-area: sculpture;
+  align-self: center;
+  justify-self: center;
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  aspect-ratio: 2 / 1;
+}
+
+.sculpture > span {
+  position: absolute;
+  display: block;
+  box-shadow:
+    var(--cast),
+    inset 8px 10px 16px var(--sculpture-light),
+    inset -10px -12px 20px var(--clay-shade);
+}
+
+.sphere {
+  top: 10%;
+  left: 6%;
+  width: 40%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, var(--sculpture-light), transparent 46%),
+    var(--sculpture-mint);
+}
+
+/* A ring: the hole is pressed into the shape, showing the cushion behind. */
+.ring {
+  top: 4%;
+  left: 58%;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--sculpture-blue);
+}
+
+.ring::after {
+  content: '';
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: var(--dp-color-accent);
+  box-shadow: var(--shadow-pressed);
+}
+
+.block {
+  top: 46%;
+  left: 41%;
+  width: 23%;
+  aspect-ratio: 1;
+  border-radius: 30%;
+  background: var(--sculpture-yellow);
+  transform: rotate(-14deg);
+}
+
+.capsule {
+  top: 62%;
+  left: 58%;
+  width: 34%;
+  aspect-ratio: 2.6;
+  border-radius: var(--dp-radius-control);
+  background: var(--sculpture-lavender);
+  transform: rotate(-20deg);
+}
+
+.pebble {
+  top: 8%;
+  left: 34%;
+  width: 10%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, var(--sculpture-light), transparent 50%),
+    var(--sculpture-cream);
+}
+
+/* Supporting facts: one pastel cushion each, beneath the lead cushion. */
 .promises {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dp-spacing-gap);
   list-style: none;
 }
 
 .promise {
+  --tone: var(--dp-color-surface-support);
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--dp-radius-surface);
+  background: var(--tone);
+  box-shadow: var(--shadow-surface);
+}
+
+.promise:nth-child(3n + 2) {
+  --tone: var(--dp-color-surface-warm);
+}
+
+.promise:nth-child(3n + 3) {
+  --tone: var(--dp-color-surface-cool);
 }
 
 .promiseIcon {
   flex: none;
-  margin-top: 2px;
-  color: var(--color-accent);
+  display: inline-grid;
+  place-items: center;
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
 }
 
 .promiseTitle {
   font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
 }
 
 .promiseText {
+  margin-top: var(--space-2);
   color: var(--color-text-muted);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tool:hover,
-  .tool:active {
-    transform: none;
+/* Tighter gaps and a smaller sculpture. */
+@media (max-width: 1100px) {
+  .cushion {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-6) var(--space-8);
+    padding: var(--space-10);
+    border-radius: var(--radius-tray);
+  }
+
+  .sculpture {
+    max-width: 24rem;
+  }
+
+  .promises {
+    gap: var(--dp-spacing-gap-compact);
+  }
+
+  .promise {
+    padding: var(--space-5);
+  }
+}
+
+/* One column: the sculpture moves below the headline, the facts pair up. */
+@media (max-width: 760px) {
+  .cushion {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      'intro'
+      'sculpture'
+      'tools';
+    padding: var(--tray-padding);
+  }
+
+  .sculpture {
+    max-width: 22rem;
+  }
+
+  .promises {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Phones: fewer, smaller decorative forms and single columns. */
+@media (max-width: 460px) {
+  .sculpture {
+    max-width: 16rem;
+  }
+
+  .sculpture > .capsule,
+  .sculpture > .pebble {
+    display: none;
+  }
+
+  .promises {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .promise {
+    padding: var(--space-4) var(--space-5);
   }
 }

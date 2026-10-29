@@ -19,8 +19,8 @@ export default function SiteHeader({ theme, onThemeChange, activeSection }) {
     <header className={styles.header}>
       <div className={styles.inner}>
         <a className={styles.brand} href="#tools" aria-label="Compressive, go to the top">
+          {/* The tile itself is drawn in CSS, so it takes the clay shading. */}
           <svg className={styles.mark} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-            <rect className={styles.markTile} width="32" height="32" rx="8" />
             <path className={styles.markArrows} d="M8 8l6 6M14 9v5H9M24 24l-6-6M18 23v-5h5" />
           </svg>
           <span className={styles.name}>Compressive</span>
@@ -55,7 +55,7 @@ export default function SiteHeader({ theme, onThemeChange, activeSection }) {
                 className="visually-hidden"
                 aria-label={value === 'system' ? 'Auto (match device)' : label}
               />
-              <Icon size={16} aria-hidden="true" className={styles.themeIcon} />
+              <Icon size={16} aria-hidden="true" />
               <span className={styles.themeLabel}>{label}</span>
             </label>
           ))}

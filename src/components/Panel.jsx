@@ -1,14 +1,15 @@
 import styles from './Panel.module.css';
 
 /**
- * A flat window with a title bar, matching the command prompt's look.
- * `step` numbers the workflow (Add files → Compress and download).
+ * A clay cushion with a title row, one per workflow step.
+ * `step` numbers the workflow (Add files → Compress and download); `tone`
+ * picks the pastel surface ('support' mint, 'cool' blue; cream by default).
  *
- * @param {{ id: string, step?: number, title: string, description?: string, actions?: import('react').ReactNode, children: import('react').ReactNode, className?: string }} props
+ * @param {{ id: string, step?: number, tone?: 'support' | 'cool', title: string, description?: string, actions?: import('react').ReactNode, children: import('react').ReactNode, className?: string }} props
  */
-export default function Panel({ id, step, title, description, actions, children, className }) {
+export default function Panel({ id, step, tone, title, description, actions, children, className }) {
   return (
-    <section className={[styles.panel, className].filter(Boolean).join(' ')} aria-labelledby={`${id}-title`}>
+    <section className={[styles.panel, className].filter(Boolean).join(' ')} data-tone={tone} aria-labelledby={`${id}-title`}>
       <header className={styles.titleBar}>
         <div className={styles.heading}>
           {step ? (

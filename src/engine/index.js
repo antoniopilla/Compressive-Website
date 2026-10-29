@@ -2,8 +2,9 @@
  * Compressive processing engine: what the interface uses.
  *
  * Framework-independent vanilla JavaScript. The React interface drives the
- * engine only through `createFileStudio()`, and uses the policies, units and
- * formatters below for display. Tests import the engine's modules directly.
+ * engine only through `createFileStudio()`, uses the policies, units and
+ * formatters below for display, and `downloadMimeType()` when saving files.
+ * Tests import the engine's modules directly.
  *
  * Typical use:
  *
@@ -21,3 +22,4 @@ export { createFileStudio } from './studio.js';
 export { UNITS, toInches, fromInches, resolvePrintSize, describePrintSize } from './units.js';
 export { IMAGE_POLICY, LIMITS, RESOLUTION_POLICY } from './policy.js';
 export { formatBytes, formatDimensions, formatDuration, formatNumber, formatPercent, formatPpi } from './format.js';
+export { downloadMimeType } from './filenames.js';

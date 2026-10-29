@@ -1,3 +1,4 @@
+/* A well pressed into the cushion; dragging files over it fills it with pink. */
 .zone {
   display: flex;
   flex-direction: column;
@@ -5,22 +6,22 @@
   gap: var(--space-3);
   padding: var(--space-8) var(--space-5);
   border: 2px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
+  border-radius: var(--dp-radius-surface);
+  box-shadow: var(--shadow-well);
   text-align: center;
   transition:
-    border-color var(--duration-base) var(--ease-out),
-    background-color var(--duration-base) var(--ease-out);
+    border-color var(--dp-motion-interaction) var(--ease-out),
+    background-color var(--dp-motion-interaction) var(--ease-out);
 }
 
 .zone[data-active] {
-  border-color: var(--color-primary);
+  border-color: var(--color-text);
   border-style: solid;
-  background: var(--color-primary-soft);
+  background: var(--dp-color-accent);
 }
 
 .zone[data-active] .icon {
-  transform: translateY(var(--lift)) scale(1.08);
+  transform: translateY(var(--hover-lift)) scale(1.08);
 }
 
 .zone[data-compact] {
@@ -28,13 +29,13 @@
   flex-wrap: wrap;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
+  border-radius: var(--dp-radius-disclosure);
   text-align: left;
 }
 
 .icon {
   flex: none;
-  color: var(--color-primary);
-  transition: transform var(--duration-base) var(--ease-out);
+  transition: transform var(--dp-motion-interaction) var(--ease-out);
 }
 
 .text {

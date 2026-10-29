@@ -1,10 +1,13 @@
+/* A status label inlaid in its surface: ink text, a coloured icon and a pastel well. */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   max-width: 100%;
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
+  border-radius: var(--dp-radius-control);
+  box-shadow: var(--shadow-well);
+  color: var(--color-text);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
@@ -16,23 +19,39 @@
   font-size: var(--text-xs);
 }
 
+.badge svg {
+  flex: none;
+}
+
 .badge[data-status='meets-target'] {
   background: var(--color-success-soft);
+}
+
+.badge[data-status='meets-target'] svg {
   color: var(--color-success);
 }
 
 .badge[data-status='below-target'] {
   background: var(--color-info-soft);
+}
+
+.badge[data-status='below-target'] svg {
   color: var(--color-info);
 }
 
 .badge[data-status='warning'] {
   background: var(--color-warning-soft);
+}
+
+.badge[data-status='warning'] svg {
   color: var(--color-warning);
 }
 
 .badge[data-status='critical'] {
   background: var(--color-error-soft);
+}
+
+.badge[data-status='critical'] svg {
   color: var(--color-error);
 }
 

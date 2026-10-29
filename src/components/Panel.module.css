@@ -1,9 +1,17 @@
-/* The card pattern used for every workspace panel. */
+/* The cushion used for every workspace step, set inside the cream tray. */
 .panel {
   min-width: 0;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--dp-radius-surface);
   background: var(--color-surface);
+  box-shadow: var(--shadow-surface);
+}
+
+.panel[data-tone='support'] {
+  background: var(--dp-color-surface-support);
+}
+
+.panel[data-tone='cool'] {
+  background: var(--dp-color-surface-cool);
 }
 
 .titleBar {
@@ -13,8 +21,7 @@
   justify-content: space-between;
   gap: var(--space-2) var(--space-3);
   min-height: var(--control-height-lg);
-  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5);
-  border-bottom: var(--border-width) solid var(--color-border);
+  padding: var(--space-5) var(--space-5) 0 var(--space-6);
 }
 
 .heading {
@@ -24,21 +31,22 @@
   min-width: 0;
 }
 
+/* The step number: a small cream dot raised from the cushion. */
 .step {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: var(--space-8);
-  height: var(--space-8);
-  border-radius: var(--radius-pill);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: var(--text-sm);
+  width: var(--space-10);
+  height: var(--space-10);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
+  font-size: var(--text-md);
   font-weight: var(--weight-bold);
 }
 
 .title {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
 }
 
 .actions {
@@ -51,15 +59,26 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
-  padding: var(--space-5);
+  padding: var(--space-4) var(--space-5) var(--space-6);
 }
 
 .description {
   color: var(--color-text-muted);
 }
 
+/* Phones: the cushion sits inside a tray, so it gives back some room. */
+@media (max-width: 460px) {
+  .titleBar {
+    padding: var(--space-4) var(--space-3) 0 var(--space-4);
+  }
+
+  .body {
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+}
+
 @media (min-width: 640px) {
   .body {
-    padding: var(--space-6);
+    padding: var(--space-5) var(--space-6) var(--space-8);
   }
 }

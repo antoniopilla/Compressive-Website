@@ -4,40 +4,40 @@
 
 .list {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   list-style: none;
 }
 
+/* Each chosen file is a small cream cushion; its well's colour follows the file type. */
 .row {
-  --tile: var(--color-primary-soft);
-  --tile-ink: var(--color-primary);
+  --tile: var(--dp-color-surface-cool);
+  --tile-ink: var(--color-text);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--space-3);
   padding: var(--space-3);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--dp-radius-disclosure);
   background: var(--color-surface);
-  animation: enter var(--duration-base) var(--ease-out) both;
+  box-shadow: var(--shadow-control);
 }
 
 .row[data-category='vector'] {
-  --tile: var(--color-accent-soft);
-  --tile-ink: var(--color-accent);
+  --tile: var(--dp-color-surface-support);
 }
 
 .row[data-category='pdf'],
 .row[data-category='psd'] {
-  --tile: var(--color-secondary-soft);
-  --tile-ink: var(--color-secondary);
+  --tile: var(--dp-color-surface-compare);
 }
 
 .row[data-invalid] {
   --tile: var(--color-surface);
   --tile-ink: var(--color-error);
-  border-color: var(--color-error);
   background: var(--color-error-soft);
+  box-shadow:
+    inset 0 0 0 2px var(--color-error),
+    var(--shadow-control);
 }
 
 .icon {
@@ -45,13 +45,15 @@
   place-items: center;
   width: var(--icon-tile);
   height: var(--icon-tile);
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: var(--tile);
+  box-shadow: var(--shadow-control);
   color: var(--tile-ink);
 }
 
 .main {
   min-width: 0;
+  padding-top: var(--space-1);
 }
 
 .name {
@@ -112,7 +114,6 @@
 .actions {
   display: flex;
   gap: var(--space-1);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) 0 0;
 }
 
 @media (max-width: 440px) {
@@ -122,6 +123,6 @@
 
   .actions {
     grid-column: 2;
-    margin: 0 0 0 calc(-1 * var(--space-2));
+    margin-left: calc(-1 * var(--space-2));
   }
 }

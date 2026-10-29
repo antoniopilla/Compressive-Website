@@ -1,66 +1,173 @@
 /*
- * Compressive design system: flat, calm and quick to scan.
+ * Compressive design system: claymorphism.
  *
- * Flat rules: no shadows, gradients, bevels or textures. Depth comes from solid
- * surfaces, 1px borders and spacing. Every colour, size and timing below is a
- * token; components use these variables instead of hard-coded values.
+ * Soft, inflated forms lit from the upper left. Dark plum-grey ink sits on a
+ * pink lead cushion, cream reading trays and pastel mint, lavender,
+ * butter-yellow and pale-blue objects. Every raised form combines a broad
+ * outer shadow with a light inset along its upper-left edge and a darker inset
+ * along its lower-right edge; recessed wells reverse the insets. Text never
+ * carries a shadow.
  *
- * Palette (every text pairing meets WCAG AA, 4.5:1, in both themes):
- *   primary   blue    actions, links, focus, the current navigation item
- *   secondary violet  supporting highlights (ZIP, Photoshop)
- *   accent    teal    space saved, "kept exactly" reassurance
- *   status    success green, warning amber, error red, info blue
- *   neutrals  cool greys for surfaces, borders and text
+ * The --dp-* values are the design system's own tokens. The role tokens below
+ * them build on those values, and components use these variables instead of
+ * hard-coded values.
+ *
+ * Ink and ink-secondary meet WCAG AA (4.5:1) on every surface in both themes.
+ * Status colours (success, warning, error, info) are for icons and short
+ * labels; their soft shades reuse the pastel surfaces.
  */
+
+/* Instrument Sans, bundled with the site: the CSP only allows fonts from this origin. */
+@font-face {
+  font-family: 'Claymorphism Instrument';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Claymorphism Instrument';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
   color-scheme: light;
 
-  /* Colours: light theme */
-  --color-bg: #f6f7fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #eff2f8;
-  --color-surface-3: #e6eaf3;
-  --color-border: #dce1eb;
-  --color-border-strong: #c3cad8;
-  --color-text: #111827;
-  --color-text-muted: #4a5568;
+  /* Design-system tokens */
+  --dp-color-ground: #f1f2fa;
+  --dp-color-ink: #383139;
+  --dp-color-ink-secondary: #48404b;
+  --dp-color-accent: #f6a3ca;
+  --dp-color-surface-support: #c0efdc;
+  --dp-color-surface-compare: #ded0f9;
+  --dp-color-surface-warm: #f9e7a8;
+  --dp-color-surface-cool: #c5e5fb;
+  --dp-color-surface: #fffdf7;
+  --dp-typography-face: 'Claymorphism Instrument', sans-serif;
+  --dp-typography-body: 16px;
+  --dp-typography-small: 15px;
+  --dp-typography-metadata: 13px;
+  --dp-typography-caption: 12px;
+  --dp-typography-reading-leading: 1.55;
+  --dp-typography-emphasis: 700;
+  --dp-spacing-gap: 24px;
+  --dp-spacing-gap-compact: 20px;
+  --dp-spacing-paragraph-gap: 18px;
+  --dp-radius-surface: 38px;
+  --dp-radius-tray: 70px;
+  --dp-radius-control: 999px;
+  --dp-radius-disclosure: 25px;
+  --dp-border-focus-width: 3px;
+  --dp-motion-interaction: 180ms;
 
-  --color-primary: #2456e8;
-  --color-primary-hover: #1c46c7;
-  --color-primary-soft: #e7edfe;
-  --color-on-primary: #ffffff;
-  --color-secondary: #6b46d9;
-  --color-secondary-soft: #efeafc;
-  --color-accent: #0a7166;
-  --color-accent-soft: #e2f4f1;
+  /* Colours: roles */
+  --color-bg: var(--dp-color-ground);
+  --color-surface: var(--dp-color-surface);
+  --color-surface-2: #f6f0e5;
+  --color-surface-3: #e9e0d2;
+  --color-border: rgb(56 49 57 / 0.14);
+  --color-border-strong: rgb(56 49 57 / 0.34);
+  --color-hover: rgb(56 49 57 / 0.07);
+  --color-text: var(--dp-color-ink);
+  --color-text-muted: var(--dp-color-ink-secondary);
+
+  --color-primary: var(--dp-color-ink);
+  --color-primary-hover: #4d434f;
+  --color-on-primary: var(--dp-color-surface);
 
   --color-success: #14703f;
-  --color-success-soft: #e3f4ea;
+  --color-success-soft: var(--dp-color-surface-support);
   --color-warning: #8f5400;
-  --color-warning-soft: #fbf0dc;
+  --color-warning-soft: var(--dp-color-surface-warm);
   --color-error: #b4322a;
-  --color-error-soft: #fce9e7;
-  --color-info: #0b67b8;
-  --color-info-soft: #e3effb;
+  --color-error-soft: #fce4e1;
+  --color-info: #0a5c9e;
+  --color-info-soft: var(--dp-color-surface-cool);
 
-  --color-focus: #2456e8;
+  --color-focus: var(--dp-color-ink);
+
+  /* Clay shading: light falls from the upper left. */
+  --clay-light: rgb(255 255 255 / 0.75);
+  --clay-shade: rgb(84 60 98 / 0.16);
+  --clay-drop: rgb(84 60 98 / 0.22);
+  --clay-shade-accent: rgb(188 68 128 / 0.3);
+  --clay-light-ink: rgb(255 255 255 / 0.26);
+  --clay-shade-ink: rgb(0 0 0 / 0.38);
+
+  --shadow-tray:
+    20px 30px 60px -30px var(--clay-drop),
+    inset 10px 12px 22px var(--clay-light),
+    inset -14px -16px 30px var(--clay-shade);
+  --shadow-tray-accent:
+    20px 30px 60px -30px var(--clay-drop),
+    inset 10px 12px 22px var(--clay-light),
+    inset -14px -16px 30px var(--clay-shade-accent);
+  --shadow-surface:
+    10px 16px 32px -18px var(--clay-drop),
+    inset 6px 7px 13px var(--clay-light),
+    inset -7px -9px 16px var(--clay-shade);
+  --shadow-control:
+    4px 8px 16px -8px var(--clay-drop),
+    inset 3px 3px 6px var(--clay-light),
+    inset -3px -4px 8px var(--clay-shade);
+  --shadow-raised:
+    6px 13px 22px -8px var(--clay-drop),
+    inset 3px 3px 6px var(--clay-light),
+    inset -3px -4px 8px var(--clay-shade);
+  --shadow-pressed:
+    inset 4px 5px 9px var(--clay-shade),
+    inset -2px -2px 5px var(--clay-light);
+  --shadow-well:
+    inset 3px 4px 8px var(--clay-shade),
+    inset -3px -3px 6px var(--clay-light);
+  --shadow-ink:
+    4px 8px 16px -8px var(--clay-drop),
+    inset 3px 3px 6px var(--clay-light-ink),
+    inset -3px -4px 8px var(--clay-shade-ink);
+  --shadow-ink-raised:
+    6px 13px 22px -8px var(--clay-drop),
+    inset 3px 3px 6px var(--clay-light-ink),
+    inset -3px -4px 8px var(--clay-shade-ink);
+  --shadow-ink-pressed:
+    inset 4px 5px 9px var(--clay-shade-ink),
+    inset -2px -2px 5px var(--clay-light-ink);
+
+  /* The hero sculpture: the pastels themselves; dark mode lifts them off the deep cushion. */
+  --sculpture-mint: var(--dp-color-surface-support);
+  --sculpture-lavender: var(--dp-color-surface-compare);
+  --sculpture-yellow: var(--dp-color-surface-warm);
+  --sculpture-blue: var(--dp-color-surface-cool);
+  --sculpture-cream: var(--dp-color-surface);
+  --sculpture-light: var(--clay-light);
 
   /* Typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  --text-xs: 0.8125rem;
-  --text-sm: 0.875rem;
-  --text-md: 1rem;
+  --text-xs: var(--dp-typography-metadata);
+  --text-sm: var(--dp-typography-small);
+  --text-md: var(--dp-typography-body);
   --text-lg: 1.125rem;
   --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
-  --text-display: clamp(2.1rem, 5vw, 3.25rem);
-  --leading-tight: 1.2;
-  --leading-normal: 1.6;
+  --text-2xl: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  /* 54px at 760px wide, growing to 94px; phones step down to 40px. */
+  --text-display: clamp(2.5rem, 1.1rem + 4.76vw, 5.875rem);
+  --leading-display: 0.98;
+  --leading-tight: 1.15;
+  --leading-normal: var(--dp-typography-reading-leading);
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.02em;
   --weight-medium: 500;
   --weight-semibold: 600;
-  --weight-bold: 700;
+  --weight-bold: var(--dp-typography-emphasis);
 
   /* Spacing (4px base) */
   --space-1: 4px;
@@ -71,98 +178,115 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
+  --space-12: 48px;
   --space-16: 64px;
+  --section-gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+  --tray-padding: clamp(1rem, 4.5vw, 3.5rem);
 
   /* Shape and size */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
+  --radius-sm: 14px;
+  --radius-tray: clamp(var(--dp-radius-surface), 7vw, var(--dp-radius-tray));
   --border-width: 1px;
   --control-height: 44px;
-  --control-height-lg: 52px;
-  --icon-tile: 40px;
-  --content-max: 1160px;
-  --content-narrow: 760px;
-  --header-height: 64px;
-  --bottom-nav-height: 64px;
+  --button-height: 48px;
+  --control-height-lg: 56px;
+  --icon-tile: 44px;
+  --content-max: 1240px;
+  --header-height: 92px;
+  --bottom-nav-height: 72px;
   --gutter: 16px;
 
-  /* Motion */
-  --duration-fast: 140ms;
-  --duration-base: 200ms;
-  --duration-slow: 320ms;
-  --duration-menu: 240ms;
+  /* Motion: short hover and press responses only. */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --lift: -2px;
-  --hover-lift: var(--lift);
-  --enter-distance: 12px;
+  --hover-lift: -2px;
+  --press-shift: 1px;
+  --press-scale: 0.97;
 }
 
-/* Dark theme: chosen explicitly, or following the device when set to Auto. */
+/*
+ * Dark theme: chosen explicitly, or following the device when set to Auto.
+ * The design system defines light values only, so the same roles move to
+ * deep clay tones here; the shading keeps the same light direction.
+ */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #0d1117;
-  --color-surface: #151b25;
-  --color-surface-2: #1c2431;
-  --color-surface-3: #232c3b;
-  --color-border: #2a3446;
-  --color-border-strong: #3c475b;
-  --color-text: #e9edf4;
-  --color-text-muted: #a6b0c0;
+  --dp-color-ground: #1d1a22;
+  --dp-color-ink: #f6eff4;
+  --dp-color-ink-secondary: #d9ced8;
+  --dp-color-accent: #6d3557;
+  --dp-color-surface-support: #1d3d35;
+  --dp-color-surface-compare: #322a4d;
+  --dp-color-surface-warm: #3e3420;
+  --dp-color-surface-cool: #1c3448;
+  --dp-color-surface: #2b2631;
 
-  --color-primary: #7ea4ff;
-  --color-primary-hover: #a3beff;
-  --color-primary-soft: #1c2a4a;
-  --color-on-primary: #0d1117;
-  --color-secondary: #b9a2ff;
-  --color-secondary-soft: #272348;
-  --color-accent: #3fd3c0;
-  --color-accent-soft: #123532;
+  --color-surface-2: #232028;
+  --color-surface-3: #3a3442;
+  --color-border: rgb(246 239 244 / 0.14);
+  --color-border-strong: rgb(246 239 244 / 0.34);
+  --color-hover: rgb(246 239 244 / 0.08);
+  --color-primary-hover: #ffffff;
 
   --color-success: #5ad48c;
-  --color-success-soft: #15331f;
   --color-warning: #f7c04a;
-  --color-warning-soft: #3a2e12;
   --color-error: #ff8a80;
-  --color-error-soft: #3d1d1c;
+  --color-error-soft: #3d1f22;
   --color-info: #6cb6ff;
-  --color-info-soft: #132d48;
 
-  --color-focus: #7ea4ff;
+  --clay-light: rgb(255 255 255 / 0.07);
+  --clay-shade: rgb(0 0 0 / 0.3);
+  --clay-drop: rgb(0 0 0 / 0.5);
+  --clay-shade-accent: rgb(24 6 18 / 0.45);
+  --clay-light-ink: rgb(255 255 255 / 0.85);
+  --clay-shade-ink: rgb(84 60 98 / 0.3);
+
+  --sculpture-mint: #6fae96;
+  --sculpture-lavender: #9686c9;
+  --sculpture-yellow: #c4ad62;
+  --sculpture-blue: #6aa3c9;
+  --sculpture-cream: #d6ccc0;
+  --sculpture-light: rgb(255 255 255 / 0.32);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --color-bg: #0d1117;
-    --color-surface: #151b25;
-    --color-surface-2: #1c2431;
-    --color-surface-3: #232c3b;
-    --color-border: #2a3446;
-    --color-border-strong: #3c475b;
-    --color-text: #e9edf4;
-    --color-text-muted: #a6b0c0;
+    --dp-color-ground: #1d1a22;
+    --dp-color-ink: #f6eff4;
+    --dp-color-ink-secondary: #d9ced8;
+    --dp-color-accent: #6d3557;
+    --dp-color-surface-support: #1d3d35;
+    --dp-color-surface-compare: #322a4d;
+    --dp-color-surface-warm: #3e3420;
+    --dp-color-surface-cool: #1c3448;
+    --dp-color-surface: #2b2631;
 
-    --color-primary: #7ea4ff;
-    --color-primary-hover: #a3beff;
-    --color-primary-soft: #1c2a4a;
-    --color-on-primary: #0d1117;
-    --color-secondary: #b9a2ff;
-    --color-secondary-soft: #272348;
-    --color-accent: #3fd3c0;
-    --color-accent-soft: #123532;
+    --color-surface-2: #232028;
+    --color-surface-3: #3a3442;
+    --color-border: rgb(246 239 244 / 0.14);
+    --color-border-strong: rgb(246 239 244 / 0.34);
+    --color-hover: rgb(246 239 244 / 0.08);
+    --color-primary-hover: #ffffff;
 
     --color-success: #5ad48c;
-    --color-success-soft: #15331f;
     --color-warning: #f7c04a;
-    --color-warning-soft: #3a2e12;
     --color-error: #ff8a80;
-    --color-error-soft: #3d1d1c;
+    --color-error-soft: #3d1f22;
     --color-info: #6cb6ff;
-    --color-info-soft: #132d48;
 
-    --color-focus: #7ea4ff;
+    --clay-light: rgb(255 255 255 / 0.07);
+    --clay-shade: rgb(0 0 0 / 0.3);
+    --clay-drop: rgb(0 0 0 / 0.5);
+    --clay-shade-accent: rgb(24 6 18 / 0.45);
+    --clay-light-ink: rgb(255 255 255 / 0.85);
+    --clay-shade-ink: rgb(84 60 98 / 0.3);
+
+    --sculpture-mint: #6fae96;
+    --sculpture-lavender: #9686c9;
+    --sculpture-yellow: #c4ad62;
+    --sculpture-blue: #6aa3c9;
+    --sculpture-cream: #d6ccc0;
+    --sculpture-light: rgb(255 255 255 / 0.32);
   }
 }
 
@@ -184,7 +308,7 @@ body {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-sans);
+  font-family: var(--dp-typography-face);
   font-size: var(--text-md);
   line-height: var(--leading-normal);
   overflow-x: hidden;
@@ -201,15 +325,16 @@ p {
 h1,
 h2,
 h3 {
+  font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-heading);
 }
 
 a {
   color: var(--color-primary);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  transition: color var(--duration-fast) var(--ease-out);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
+  transition: color var(--dp-motion-interaction) var(--ease-out);
 }
 
 a:hover {
@@ -223,9 +348,10 @@ select {
   color: inherit;
 }
 
+/* Focus is an outline, kept apart from the clay shading so it always shows. */
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: var(--dp-border-focus-width) solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 ul,
@@ -253,12 +379,13 @@ ol {
   z-index: 20;
   display: inline-flex;
   align-items: center;
-  min-height: var(--control-height);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-sm);
+  min-height: var(--button-height);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--dp-radius-control);
   background: var(--color-primary);
+  box-shadow: var(--shadow-ink);
   color: var(--color-on-primary);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
   text-decoration: none;
 }
 
@@ -268,30 +395,30 @@ ol {
 }
 
 /*
- * Buttons: one shape everywhere. Hover lifts 2px and shifts colour; pressing
- * settles back. Only transform and colour animate.
+ * Buttons: thick clay pills. Hover raises them slightly; pressing lowers and
+ * compresses them into the surface. Only transform, shadow and colour animate.
  */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--control-height);
+  min-height: var(--button-height);
   max-width: 100%;
-  padding: var(--space-2) var(--space-5);
-  border: var(--border-width) solid transparent;
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  border: 0;
+  border-radius: var(--dp-radius-control);
   font-size: var(--text-md);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   text-align: center;
   text-decoration: none;
   cursor: pointer;
   transition:
-    transform var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    transform var(--dp-motion-interaction) var(--ease-out),
+    box-shadow var(--dp-motion-interaction) var(--ease-out),
+    background-color var(--dp-motion-interaction) var(--ease-out),
+    color var(--dp-motion-interaction) var(--ease-out);
 }
 
 .btn svg {
@@ -302,10 +429,6 @@ ol {
   transform: translateY(var(--hover-lift));
 }
 
-.btn:not(:disabled):active {
-  transform: translateY(0) scale(0.98);
-}
-
 .btn:disabled,
 .btn[aria-disabled='true'] {
   cursor: not-allowed;
@@ -314,25 +437,36 @@ ol {
 
 .btn-primary {
   background: var(--color-primary);
+  box-shadow: var(--shadow-ink);
   color: var(--color-on-primary);
 }
 
 .btn-primary:not(:disabled):hover {
-  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-ink-raised);
   color: var(--color-on-primary);
 }
 
-.btn-secondary {
-  border-color: var(--color-border-strong);
+.btn-secondary,
+.btn-danger {
   background: var(--color-surface);
+  box-shadow: var(--shadow-control);
   color: var(--color-text);
 }
 
-.btn-secondary:not(:disabled):hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+.btn-secondary:not(:disabled):hover,
+.btn-danger:not(:disabled):hover {
+  box-shadow: var(--shadow-raised);
 }
 
+.btn-danger {
+  color: var(--color-error);
+}
+
+.btn-danger:not(:disabled):hover {
+  background: var(--color-error-soft);
+}
+
+/* Ghost actions stay plain text until hovered. */
 .btn-ghost {
   padding-inline: var(--space-3);
   background: transparent;
@@ -340,29 +474,29 @@ ol {
 }
 
 .btn-ghost:not(:disabled):hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-.btn-danger {
-  border-color: var(--color-border-strong);
-  background: var(--color-surface);
-  color: var(--color-error);
+/* Pressing: after the hover rules, so it wins while the pointer is still over the button. */
+.btn:not(:disabled):active {
+  transform: translateY(var(--press-shift)) scale(var(--press-scale));
+  box-shadow: var(--shadow-pressed);
 }
 
-.btn-danger:not(:disabled):hover {
-  border-color: var(--color-error);
-  background: var(--color-error-soft);
+.btn-primary:not(:disabled):active {
+  box-shadow: var(--shadow-ink-pressed);
 }
 
 .btn-icon {
   min-width: var(--control-height);
+  min-height: var(--control-height);
   padding: var(--space-2);
 }
 
 .btn-lg {
   min-height: var(--control-height-lg);
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-3) var(--space-8);
   font-size: var(--text-lg);
 }
 
@@ -376,58 +510,27 @@ ol {
   }
 }
 
-/* Page-load entrance: a quick fade and slide-up. */
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(var(--enter-distance));
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Short confirmation pop for checkmarks and success states. */
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * Scroll reveal: sections below the fold start slightly lowered and
- * transparent and ease in once (see src/hooks/useReveal.js). Only transform
- * and opacity change, so nothing shifts the layout.
- */
-[data-reveal='pending'] {
-  opacity: 0;
-  transform: translateY(calc(var(--enter-distance) * 1.5));
-}
-
-[data-reveal='shown'] {
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-
-/* Touch screens have no real hover, so a tapped card or button must not stay raised. */
+/* Touch screens have no real hover, so a tapped control must not stay raised. */
 @media (hover: none) {
   :root {
     --hover-lift: 0px;
   }
 }
 
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+/* Reduced motion: no movement and no transitions. Pressed states still show, instantly. */
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --hover-lift: 0px;
+    --press-shift: 0px;
+    --press-scale: 1;
+  }
+
   html {
     scroll-behavior: auto;
   }
@@ -438,15 +541,5 @@ ol {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
-  .btn:not(:disabled):hover,
-  .btn:not(:disabled):active {
-    transform: none;
   }
 }

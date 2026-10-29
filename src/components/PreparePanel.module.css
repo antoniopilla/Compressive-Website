@@ -13,15 +13,16 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  animation: enter var(--duration-base) var(--ease-out) both;
+  border-radius: var(--dp-radius-disclosure);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
 }
 
 .plan[data-route='invalid'] {
-  border-color: var(--color-error);
   background: var(--color-error-soft);
+  box-shadow:
+    inset 0 0 0 2px var(--color-error),
+    var(--shadow-control);
 }
 
 .planIcon {
@@ -30,9 +31,9 @@
   place-items: center;
   width: var(--icon-tile);
   height: var(--icon-tile);
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  border-radius: 50%;
+  background: var(--dp-color-surface-compare);
+  box-shadow: var(--shadow-control);
 }
 
 .plan[data-route='invalid'] .planIcon {
@@ -42,12 +43,12 @@
 
 .plan[data-route='protected-passthrough'] .planIcon,
 .plan[data-route='psd-passthrough'] .planIcon {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
+  background: var(--dp-color-surface-support);
 }
 
 .planText {
   min-width: 0;
+  padding-top: var(--space-2);
 }
 
 .planLabel {
@@ -114,25 +115,31 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Progress: a pink clay bar filling a recessed track. */
 .track {
   width: 100%;
-  height: var(--space-3);
+  height: var(--space-4);
   overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-3);
+  border-radius: var(--dp-radius-control);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-well);
 }
 
 .bar {
   height: 100%;
   border-radius: inherit;
-  background: var(--color-primary);
-  transition: width var(--duration-base) var(--ease-out);
+  background: var(--dp-color-accent);
+  box-shadow:
+    inset 2px 2px 4px var(--clay-light),
+    inset -2px -3px 5px var(--clay-shade-accent);
+  transition: width var(--dp-motion-interaction) var(--ease-out);
 }
 
 .notice {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--dp-radius-disclosure);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
   color: var(--color-text-muted);
 }
 
@@ -140,14 +147,16 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width) solid var(--color-error);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--dp-radius-disclosure);
   background: var(--color-error-soft);
+  box-shadow:
+    inset 0 0 0 2px var(--color-error),
+    var(--shadow-control);
   color: var(--color-error);
 }
 
 .failure svg {
   flex: none;
-  margin-top: 2px;
+  margin-top: 3px;
 }

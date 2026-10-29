@@ -1,10 +1,12 @@
+/* The closing cushion: back to pink before the footer. */
 .privacy {
   display: grid;
-  gap: var(--space-5);
-  margin-top: var(--space-16);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  background: var(--color-accent-soft);
+  gap: var(--dp-spacing-gap);
+  margin-top: var(--section-gap);
+  padding: var(--tray-padding);
+  border-radius: var(--radius-tray);
+  background: var(--dp-color-accent);
+  box-shadow: var(--shadow-tray-accent);
 }
 
 .title {
@@ -13,8 +15,8 @@
 
 .points {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: var(--dp-spacing-gap-compact) var(--dp-spacing-gap);
   list-style: none;
 }
 
@@ -26,6 +28,11 @@
 
 .icon {
   flex: none;
-  margin-top: 2px;
-  color: var(--color-accent);
+  display: inline-grid;
+  place-items: center;
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
 }

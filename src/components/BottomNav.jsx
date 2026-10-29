@@ -23,7 +23,7 @@ export default function BottomNav({ activeSection }) {
                 href={`#${section.id}`}
                 aria-current={activeSection === section.id ? 'location' : undefined}
               >
-                <Icon size={20} aria-hidden="true" className={styles.icon} />
+                <Icon size={20} aria-hidden="true" />
                 <span>{section.label}</span>
               </a>
             </li>

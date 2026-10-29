@@ -1,10 +1,12 @@
 /**
  * Filename helpers: extension detection for routing, safe ZIP entry names,
- * deterministic duplicate handling and download names.
+ * deterministic duplicate handling, and download names and types.
  *
  * Entry-name sanitising only changes the *name* stored in the archive. File
  * contents are never touched.
  */
+
+import { MIME_BY_EXTENSION } from './policy.js';
 
 /**
  * Returns the final extension in lowercase, without the dot. Routing uses only
@@ -177,4 +179,16 @@ export function archiveFileName(count, date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   const stamp = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   return `compressive-originals-${count}-files-${stamp}.zip`;
+}
+
+/**
+ * MIME type for a download: the canonical type for its extension, or a generic
+ * one. The type has to agree with the name, because a browser may rename a
+ * download to match its type: Firefox saves "Artwork.ai", reported by the
+ * system as a PDF, as "Artwork.pdf".
+ *
+ * @param {string} filename
+ */
+export function downloadMimeType(filename) {
+  return MIME_BY_EXTENSION[getExtension(filename)] ?? 'application/octet-stream';
 }

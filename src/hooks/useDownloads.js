@@ -5,9 +5,13 @@
  * revoked one minute later — long enough for every browser to have started
  * reading the Blob, so revoking never interrupts a download. Any URLs still
  * pending are revoked when the component unmounts.
+ *
+ * Each download carries the MIME type its filename implies, not the type the
+ * browser reported for the original file, so no browser renames it.
  */
 
 import { useEffect, useState } from 'react';
+import { downloadMimeType } from '../engine/index.js';
 
 /**
  * @param {{ revokeDelayMs?: number, doc?: Document, urlApi?: Pick<typeof URL, 'createObjectURL'|'revokeObjectURL'> }} [options]
@@ -25,7 +29,9 @@ export function createDownloadManager(options = {}) {
      */
     download(blob, filename) {
       const doc = options.doc ?? document;
-      const url = urlApi.createObjectURL(blob);
+      const type = downloadMimeType(filename);
+      // Slicing re-types the Blob without copying its bytes.
+      const url = urlApi.createObjectURL(blob.type === type ? blob : blob.slice(0, blob.size, type));
       const anchor = doc.createElement('a');
       anchor.href = url;
       anchor.download = filename;

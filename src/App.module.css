@@ -14,10 +14,15 @@
   padding: 0 var(--gutter) var(--space-16);
 }
 
+/* The workspace: one shared cream tray holding both steps. */
 .workspaceSection {
   display: grid;
-  gap: var(--space-5);
-  margin-top: var(--space-16);
+  gap: var(--dp-spacing-gap);
+  margin-top: var(--section-gap);
+  padding: var(--tray-padding);
+  border-radius: var(--radius-tray);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-tray);
   scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
@@ -41,13 +46,14 @@
 
 .workspace {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--dp-spacing-gap-compact);
 }
 
 .placeholder {
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--dp-radius-disclosure);
   background: var(--color-surface-2);
+  box-shadow: var(--shadow-well);
   color: var(--color-text-muted);
 }
 

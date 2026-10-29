@@ -98,6 +98,22 @@ describe('download object URLs', () => {
     expect(manager.pendingCount).toBe(0);
     click.mockRestore();
   });
+
+  it('gives each download the type its name implies, so browsers keep the name', () => {
+    const urlApi = { createObjectURL: vi.fn(() => 'blob:test-3'), revokeObjectURL: vi.fn() };
+    const manager = createDownloadManager({ urlApi });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    // An Illustrator file the system reported as a PDF; Firefox would save it as "Artwork.pdf".
+    manager.download(new Blob(['%PDF-1.6'], { type: 'application/pdf' }), 'Artwork.ai');
+    const zip = new Blob(['PK'], { type: 'application/zip' });
+    manager.download(zip, 'originals.zip');
+    const [[retyped], [unchanged]] = urlApi.createObjectURL.mock.calls;
+    expect(retyped.type).toBe('application/postscript');
+    expect(retyped.size).toBe(8);
+    expect(unchanged).toBe(zip);
+    manager.revokeAll();
+    click.mockRestore();
+  });
 });
 
 /** Minimal DataTransfer stand-in (jsdom does not implement drag data). */

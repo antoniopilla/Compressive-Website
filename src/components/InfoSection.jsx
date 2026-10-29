@@ -1,6 +1,5 @@
 import { Archive, FileImage, FileText, Image, Layers } from 'lucide-react';
 import { formatBytes, formatNumber, IMAGE_POLICY, LIMITS } from '../engine/index.js';
-import { useReveal } from '../hooks/useReveal.js';
 import styles from './InfoSection.module.css';
 
 const ROWS = [
@@ -31,11 +30,10 @@ const ROWS = [
   },
 ];
 
-/** "How it works": what happens to each file type, and the limits. */
+/** "How it works": what happens to each file type, one shelf per type, and the limits. */
 export default function InfoSection() {
-  const ref = useReveal();
   return (
-    <section id="how-it-works" ref={ref} className={styles.info} aria-labelledby="info-title">
+    <section id="how-it-works" className={styles.info} aria-labelledby="info-title">
       <div className={styles.heading}>
         <h2 id="info-title" className={styles.title}>
           What Compressive does with each file
@@ -48,13 +46,13 @@ export default function InfoSection() {
       <ul className={styles.rows}>
         {ROWS.map(({ formats, Icon, what }) => (
           <li key={formats} className={styles.row}>
-            <span className={styles.rowIcon} aria-hidden="true">
-              <Icon size={20} />
-            </span>
-            <div>
+            <div className={styles.identity}>
+              <span className={styles.rowIcon} aria-hidden="true">
+                <Icon size={20} />
+              </span>
               <h3 className={styles.rowTitle}>{formats}</h3>
-              <p className={styles.rowText}>{what}</p>
             </div>
+            <p className={styles.rowText}>{what}</p>
           </li>
         ))}
       </ul>

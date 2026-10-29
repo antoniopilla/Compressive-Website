@@ -1,5 +1,4 @@
 import { EyeOff, HardDrive, RefreshCcw, UserX } from 'lucide-react';
-import { useReveal } from '../hooks/useReveal.js';
 import styles from './PrivacySection.module.css';
 
 const POINTS = [
@@ -9,18 +8,19 @@ const POINTS = [
   { Icon: RefreshCcw, text: 'Refreshing or closing the page clears everything.' },
 ];
 
-/** Privacy: how files are handled. */
+/** Privacy: how files are handled. The page's closing pink cushion. */
 export default function PrivacySection() {
-  const ref = useReveal();
   return (
-    <section id="privacy" ref={ref} className={styles.privacy} aria-labelledby="privacy-title">
+    <section id="privacy" className={styles.privacy} aria-labelledby="privacy-title">
       <h2 id="privacy-title" className={styles.title}>
         Privacy
       </h2>
       <ul className={styles.points}>
         {POINTS.map(({ Icon, text }) => (
           <li key={text} className={styles.point}>
-            <Icon size={20} aria-hidden="true" className={styles.icon} />
+            <span className={styles.icon} aria-hidden="true">
+              <Icon size={20} />
+            </span>
             <span>{text}</span>
           </li>
         ))}

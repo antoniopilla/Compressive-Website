@@ -1,25 +1,29 @@
+/* A cream pill bar floating over the ground colour. */
 .header {
-  border-bottom: var(--border-width) solid var(--color-border);
-  background: var(--color-surface);
-  animation: enter var(--duration-slow) var(--ease-out) both;
+  padding: var(--space-3) var(--gutter) 0;
+  background: var(--color-bg);
 }
 
 .inner {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  max-width: var(--content-max);
-  min-height: var(--header-height);
+  max-width: calc(var(--content-max) - 2 * var(--gutter));
+  min-height: calc(var(--header-height) - 2 * var(--space-3));
   margin: 0 auto;
-  padding: var(--space-2) var(--gutter);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--dp-radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-surface);
 }
 
 .brand {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   min-height: var(--control-height);
+  border-radius: var(--dp-radius-control);
   color: var(--color-text);
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
@@ -32,17 +36,16 @@
 
 .mark {
   flex: none;
-  width: var(--space-8);
-  height: var(--space-8);
-}
-
-.markTile {
-  fill: var(--color-primary);
+  width: var(--space-10);
+  height: var(--space-10);
+  border-radius: var(--radius-sm);
+  background: var(--dp-color-accent);
+  box-shadow: var(--shadow-control);
 }
 
 .markArrows {
   fill: none;
-  stroke: var(--color-on-primary);
+  stroke: var(--color-text);
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -50,7 +53,7 @@
 
 .name {
   white-space: nowrap;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-heading);
 }
 
 /* Main navigation: shown from tablet width up; phones use the bottom bar. */
@@ -70,34 +73,40 @@
   display: inline-flex;
   align-items: center;
   min-height: var(--control-height);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--dp-radius-control);
   color: var(--color-text-muted);
   font-weight: var(--weight-semibold);
   text-decoration: none;
   transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    background-color var(--dp-motion-interaction) var(--ease-out),
+    box-shadow var(--dp-motion-interaction) var(--ease-out),
+    color var(--dp-motion-interaction) var(--ease-out);
 }
 
 .navLink:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
+/* The current section is pressed into the bar. */
 .navLink[aria-current] {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: var(--dp-color-accent);
+  box-shadow: var(--shadow-pressed);
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
 }
 
 .theme {
   display: inline-flex;
   flex: none;
+  gap: var(--space-1);
   margin: 0 0 0 auto;
-  padding: 0;
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-pill);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--dp-radius-control);
   background: var(--color-surface-2);
+  box-shadow: var(--shadow-well);
 }
 
 .themeOption {
@@ -108,41 +117,38 @@
   min-width: var(--control-height);
   min-height: var(--control-height);
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
+  border-radius: var(--dp-radius-control);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   cursor: pointer;
   transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+    background-color var(--dp-motion-interaction) var(--ease-out),
+    box-shadow var(--dp-motion-interaction) var(--ease-out),
+    color var(--dp-motion-interaction) var(--ease-out);
 }
 
 .themeOption:hover {
   color: var(--color-text);
 }
 
+/* The chosen theme rises out of the recessed track. */
 .themeOption[data-checked] {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  box-shadow: inset 0 0 0 var(--border-width) var(--color-border-strong);
-}
-
-/* Micro-interaction: the chosen theme's icon turns once. */
-.themeOption[data-checked] .themeIcon {
-  animation: pop var(--duration-base) var(--ease-out);
+  background: var(--dp-color-surface-compare);
+  box-shadow: var(--shadow-control);
+  color: var(--color-text);
 }
 
 .themeOption:has(input:focus-visible) {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 1px;
+  outline: var(--dp-border-focus-width) solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Browsers without :has() (such as Firefox before 121) still get a visible focus ring. */
 @supports not selector(:has(*)) {
   .themeOption:focus-within {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 1px;
+    outline: var(--dp-border-focus-width) solid var(--color-focus);
+    outline-offset: 2px;
   }
 }
 
@@ -150,22 +156,43 @@
   display: none;
 }
 
-/* The smallest phones: a step down in brand size keeps the gutter clear. */
+/* The smallest phones: tighter padding and a smaller brand keep 44px theme targets in the bar. */
 @media (max-width: 359px) {
+  .header {
+    padding: var(--space-2) var(--space-2) 0;
+  }
+
+  .inner {
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+  }
+
   .brand {
+    gap: var(--space-2);
     font-size: var(--text-md);
+  }
+
+  .mark {
+    width: var(--space-8);
+    height: var(--space-8);
+  }
+
+  .theme {
+    gap: 0;
+    padding: 2px;
   }
 }
 
 @media (min-width: 768px) {
-  .inner {
-    gap: var(--space-4);
-  }
-
   .header {
     position: sticky;
     top: 0;
     z-index: 10;
+    padding-bottom: var(--space-3);
+  }
+
+  .inner {
+    gap: var(--space-4);
   }
 
   .nav {

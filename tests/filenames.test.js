@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   archiveFileName,
   assignEntryNames,
+  downloadMimeType,
   getExtension,
   preparedFileName,
   sanitizeEntryName,
@@ -78,5 +79,11 @@ describe('download names', () => {
 
   it('names archives meaningfully', () => {
     expect(archiveFileName(3, new Date(2026, 9, 26))).toBe('compressive-originals-3-files-2026-10-26.zip');
+  });
+
+  it('types downloads by their name, whatever the browser reported for the original', () => {
+    expect(downloadMimeType('Artwork.ai')).toBe('application/postscript');
+    expect(downloadMimeType('Banner-prepared.JPG')).toBe('image/jpeg');
+    expect(downloadMimeType('notes')).toBe('application/octet-stream');
   });
 });
