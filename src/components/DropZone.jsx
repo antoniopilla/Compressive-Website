@@ -76,7 +76,7 @@ export default function DropZone({ onFiles, disabled = false, hasFiles = false }
       <div className={styles.text}>
         <p className={styles.title}>{active ? 'Drop to add these files' : hasFiles ? 'Add more files' : 'Drop files here'}</p>
         <p className={styles.hint} id="drop-zone-hint">
-          PNG, JPG, WebP, PDF, SVG, AI, EPS or PSD. On a phone or with a keyboard, use the button.
+          PNG, JPG, WebP, PDF, SVG, AI, EPS or PSD.
         </p>
       </div>
       <button

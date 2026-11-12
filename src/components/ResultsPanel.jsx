@@ -1,10 +1,9 @@
 import { useRef } from 'react';
-import { CircleCheck, CircleAlert, Download, Info, Printer, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ChevronDown, CircleCheck, CircleAlert, Download, Info, Printer, ShieldCheck, TriangleAlert } from 'lucide-react';
 import {
   describePrintSize,
   formatBytes,
   formatDimensions,
-  formatDuration,
   formatNumber,
   formatPercent,
   formatPpi,
@@ -73,6 +72,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
     ? result.limitations
     : result.limitations.filter((limitation) => !PRINT_ONLY_LIMITATIONS.has(limitation.code));
   const offerPrintCheck = !printChecked && result.files.some((file) => file.assessable);
+  const detailsOpen = printChecked || result.files.some((file) => file.outcome === 'kept-original');
 
   const saved = totals.savedBytes;
   const savedLabel = saved > 0 ? 'Saved' : saved < 0 ? 'Larger by' : 'Change';
@@ -99,22 +99,21 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
             <dt>{savedLabel}</dt>
             <dd>{savedValue}</dd>
           </div>
-          <div className={styles.stat}>
-            <dt>Time</dt>
-            <dd>{formatDuration(result.durationMs)}</dd>
-          </div>
         </dl>
-        <p className={styles.preservation}>
-          <ShieldCheck size={18} aria-hidden="true" />
-          <span>{result.preservation.message}</span>
-        </p>
-        {result.constraints.applicable && result.constraints.limits?.maxBytes ? (
-          <p className={styles.constraints} data-met={result.constraints.satisfied || undefined}>
-            {result.constraints.satisfied ? <CircleCheck size={18} aria-hidden="true" /> : <CircleAlert size={18} aria-hidden="true" />}
+        {/* The Download original button already says the original is kept, so the line is only needed without it. */}
+        {originalAvailable ? null : (
+          <p className={styles.preservation}>
+            <ShieldCheck size={18} aria-hidden="true" />
+            <span>{result.preservation.message}</span>
+          </p>
+        )}
+        {/* Output limits are only worth a line when one was missed. */}
+        {result.constraints.applicable && result.constraints.limits?.maxBytes && !result.constraints.satisfied ? (
+          <p className={styles.constraints}>
+            <CircleAlert size={18} aria-hidden="true" />
             <span>
-              {result.constraints.satisfied ? 'Meets the output limits' : 'Does not meet the output limits'}: up to{' '}
-              {formatBytes(result.constraints.limits.maxBytes)} and {formatNumber(result.constraints.limits.maxWidth)} ×{' '}
-              {formatNumber(result.constraints.limits.maxHeight)} px.
+              Does not meet the output limits: up to {formatBytes(result.constraints.limits.maxBytes)} and{' '}
+              {formatNumber(result.constraints.limits.maxWidth)} × {formatNumber(result.constraints.limits.maxHeight)} px.
             </span>
           </p>
         ) : null}
@@ -199,19 +198,26 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
         )}
       </div>
 
-      <h3 className={styles.sectionTitle}>File details</h3>
-      <ul className={styles.files}>
-        {result.files.map((file) => (
-          <FileResult
-            key={file.fileId}
-            file={file}
-            route={result.route}
-            fileHealth={health.files[file.fileId]}
-            details={result.details}
-            printChecked={printChecked}
-          />
-        ))}
-      </ul>
+      {/* Folded away unless something needs a look: a file kept as it was (and why), or a print check. */}
+      <details className={styles.details} open={detailsOpen}>
+        <summary className={styles.detailsSummary}>
+          <span className={styles.sectionTitle}>File details</span>
+          {result.files.length > 1 ? <span className={styles.detailsCount}>{formatNumber(result.files.length)} files</span> : null}
+          <ChevronDown size={18} aria-hidden="true" className={styles.detailsChevron} />
+        </summary>
+        <ul className={styles.files}>
+          {result.files.map((file) => (
+            <FileResult
+              key={file.fileId}
+              file={file}
+              route={result.route}
+              fileHealth={health.files[file.fileId]}
+              details={result.details}
+              printChecked={printChecked}
+            />
+          ))}
+        </ul>
+      </details>
 
       {offerPrintCheck ? (
         <p className={styles.printOffer}>

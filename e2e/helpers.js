@@ -135,6 +135,16 @@ export async function startOver(page) {
   await expect(results).toHaveCount(0);
 }
 
+/**
+ * Unfolds the per-file details of a result. They start folded unless a file
+ * was kept as it was or a print size has been entered.
+ */
+export async function showFileDetails(page) {
+  const details = page.getByTestId('results').locator('details');
+  if (!(await details.evaluate((element) => element.open))) await details.locator('summary').click();
+  await expect(details).toHaveJSProperty('open', true);
+}
+
 /** Opens the optional print check if it is folded away. */
 export async function openPrintCheck(page) {
   const toggle = page.getByRole('button', { name: /Printing it?/ });

@@ -2,7 +2,8 @@
  * Tracks which page section is in view, so navigation can mark the current
  * item. A section counts as current while it crosses a thin band just above
  * the middle of the viewport; at the very bottom of the page the last section
- * wins, even if it is too short to reach that band.
+ * wins, even if it is too short to reach that band, and above the first
+ * section (the page's opening) the first one does.
  */
 
 import { useEffect, useState } from 'react';
@@ -24,7 +25,13 @@ export function useActiveSection(ids) {
         return;
       }
       const current = ids.find((id) => inBand.get(id));
-      if (current) setActive(current);
+      if (current) {
+        setActive(current);
+        return;
+      }
+      // The band (40–45% down the viewport) is still above the first section.
+      const first = document.getElementById(ids[0]);
+      if (first && first.getBoundingClientRect().top > window.innerHeight * 0.45) setActive(ids[0]);
     };
 
     const observer = new IntersectionObserver(

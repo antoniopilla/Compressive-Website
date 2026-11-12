@@ -1,16 +1,9 @@
-/* The opening: copy and the main action, the tools beside it, and the promises beneath. */
+/* The opening: a label, the title and one line of copy, kept short so the workspace follows on the first screen. */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-10);
-  padding-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
-}
-
-.intro {
-  display: grid;
   justify-items: start;
-  align-content: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  padding-top: clamp(1.5rem, 1rem + 2.5vw, 3rem);
 }
 
 /* A quiet label above the title, not a button. */
@@ -34,7 +27,7 @@
 }
 
 .title {
-  max-width: 15em;
+  max-width: 18em;
   font-size: var(--text-display);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
@@ -42,157 +35,7 @@
 }
 
 .lead {
-  max-width: 34em;
+  max-width: 40em;
   color: var(--color-text-muted);
   font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3) var(--space-2);
-  margin-top: var(--space-2);
-}
-
-.secondaryLink {
-  padding-inline: var(--space-4);
-}
-
-.toolsBlock {
-  display: grid;
-  align-content: center;
-  gap: var(--space-3);
-}
-
-.toolsTitle {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0;
-}
-
-/* Two or three columns where a tool's label fits on one or two lines, otherwise one. */
-.tools {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
-  gap: var(--space-3);
-  list-style: none;
-}
-
-/* Tool cards: lift a little and gain a shadow on hover, settle when pressed. */
-.tool {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  height: 100%;
-  min-height: 72px;
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-xs);
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform var(--duration) var(--ease-out),
-    border-color var(--duration) var(--ease-standard),
-    box-shadow var(--duration) var(--ease-standard);
-}
-
-.tool:hover {
-  transform: translateY(var(--hover-lift));
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-raised);
-}
-
-.tool:active {
-  transform: scale(var(--press-scale));
-  box-shadow: var(--shadow-xs);
-}
-
-.toolText {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-}
-
-.toolLabel {
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-snug);
-}
-
-.toolHint {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: var(--leading-snug);
-}
-
-.toolChevron {
-  flex: none;
-  color: var(--color-text-subtle);
-  transition: color var(--duration) var(--ease-standard);
-}
-
-.tool:hover .toolChevron {
-  color: var(--color-accent);
-}
-
-/* The promises: one card, divided into three. */
-.promises {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  list-style: none;
-}
-
-.promise {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--card-padding);
-}
-
-.promise + .promise {
-  border-top: 1px solid var(--color-border);
-}
-
-.promiseTitle {
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-snug);
-}
-
-.promiseText {
-  margin-top: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: 0.9375rem;
-}
-
-@media (min-width: 760px) {
-  .promises {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .promise {
-    flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-6);
-  }
-
-  .promise + .promise {
-    border-top: 0;
-    border-left: 1px solid var(--color-border);
-  }
-}
-
-/* Two columns once the tools fit beside the copy. */
-@media (min-width: 1024px) {
-  .hero {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: var(--space-16) clamp(2.5rem, 5vw, 5rem);
-  }
 }

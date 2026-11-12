@@ -2,8 +2,6 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* Room for the phone bottom bar, reserved up front so nothing shifts. */
-  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
 }
 
 .main {
@@ -14,43 +12,19 @@
   padding: 0 var(--gutter) var(--section-gap);
 }
 
-/* The workspace: the section heading, then one card per step. */
+/* The workspace follows the short opening closely, so adding files starts on the first screen. */
 .workspaceSection {
-  display: grid;
-  gap: var(--space-8);
-  margin-top: var(--section-gap);
+  margin-top: clamp(1.75rem, 1.25rem + 2vw, 2.5rem);
 }
 
 .workspaceSection:focus {
   outline: none;
 }
 
+/* One card per step. */
 .workspace {
   display: grid;
   gap: var(--space-6);
-}
-
-/* Empty state for step 2, until there is a result. */
-.placeholder {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-8) var(--space-6);
-  border: 1.5px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  text-align: center;
-}
-
-.placeholderText {
-  max-width: 34ch;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-@media (min-width: 768px) {
-  .app {
-    padding-bottom: 0;
-  }
 }
 
 @media (min-width: 1024px) {

@@ -9,8 +9,9 @@ const THEME_OPTIONS = [
 ];
 
 /**
- * The name, the main section navigation (desktop and tablet) and the theme
- * switch. On phones the navigation moves to the bottom bar (BottomNav).
+ * The name, the main section navigation (tablet width up) and the theme
+ * switch. Phones show no section links: the page is short and in task order,
+ * and the footer repeats them.
  *
  * @param {{ theme: string, onThemeChange: (theme: string) => void, activeSection: string }} props
  */
@@ -18,7 +19,7 @@ export default function SiteHeader({ theme, onThemeChange, activeSection }) {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <a className={styles.brand} href="#tools" aria-label="Compressive, go to the top">
+        <a className={styles.brand} href="#top" aria-label="Compressive, go to the top">
           Compressive
         </a>
 

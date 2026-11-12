@@ -1,18 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Download, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { formatNumber, UNITS } from './engine/index.js';
 import { useFileStudio } from './hooks/useFileStudio.js';
 import { useDownloads } from './hooks/useDownloads.js';
 import { readPreference, usePreference, writePreference } from './hooks/usePreference.js';
 import { useReducedMotion } from './hooks/useReducedMotion.js';
 import { resultHeadline } from './ui/labels.js';
-import { TOOLS } from './ui/tools.js';
-import { ACCEPT } from './ui/files.js';
 import { SECTION_IDS } from './ui/sections.js';
 import { useActiveSection } from './hooks/useActiveSection.js';
 import SiteHeader from './components/SiteHeader.jsx';
 import Hero from './components/Hero.jsx';
-import SectionHeader from './components/SectionHeader.jsx';
 import Panel from './components/Panel.jsx';
 import DropZone from './components/DropZone.jsx';
 import NoticeList from './components/NoticeList.jsx';
@@ -22,7 +19,6 @@ import PreparePanel from './components/PreparePanel.jsx';
 import ResultsPanel from './components/ResultsPanel.jsx';
 import InfoSection from './components/InfoSection.jsx';
 import PrivacySection from './components/PrivacySection.jsx';
-import BottomNav from './components/BottomNav.jsx';
 import SiteFooter from './components/SiteFooter.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import styles from './App.module.css';
@@ -103,8 +99,6 @@ export default function App() {
   const [confirming, setConfirming] = useState(/** @type {'clear' | 'reset' | null} */ (null));
   /** The last result whose main file was downloaded, so starting over afterwards needs no question. */
   const [savedResult, setSavedResult] = useState(null);
-  const toolInputRef = useRef(null);
-  const pendingToolRef = useRef(null);
   const activeSection = useActiveSection(SECTION_IDS);
 
   useEffect(() => {
@@ -164,39 +158,6 @@ export default function App() {
     });
   };
 
-  /** Opens the file picker with the given settings. Runs inside the click, so browsers allow it. */
-  const openPicker = (picker) => {
-    const input = toolInputRef.current;
-    if (!input) return;
-    pendingToolRef.current = picker;
-    input.accept = picker.accept;
-    input.multiple = Boolean(picker.multiple);
-    input.click();
-  };
-
-  /** Opens the file picker for a tool, or the print check. */
-  const openTool = (toolId) => {
-    const tool = TOOLS.find((item) => item.id === toolId);
-    if (!tool) return;
-    if (tool.action === 'print') openPrintCheck();
-    else openPicker(tool);
-  };
-
-  /** The hero's primary action: any supported files, added to the selection. */
-  const chooseAnyFiles = () => openPicker({ accept: ACCEPT, multiple: true, replace: false });
-
-  const handleToolFiles = (event) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = '';
-    const tool = pendingToolRef.current;
-    pendingToolRef.current = null;
-    if (!files.length || !tool) return;
-    // Single-file tools start a fresh selection; the ZIP tool adds to it.
-    if (tool.replace) actions.clearSelection();
-    actions.addFiles(files);
-    document.getElementById('workspace')?.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
-  };
-
   const confirmation = confirmationFor(confirming ?? 'clear', { fileCount: selection.length, hasResult: Boolean(result) });
 
   return (
@@ -206,20 +167,19 @@ export default function App() {
       </a>
       <SiteHeader theme={theme} onThemeChange={setTheme} activeSection={activeSection} />
       <main id="main" className={styles.main}>
-        <Hero onTool={openTool} onChooseFiles={chooseAnyFiles} />
+        <Hero />
 
         <section id="workspace" className={styles.workspaceSection} tabIndex={-1} aria-labelledby="workspace-title">
-          <SectionHeader
-            titleId="workspace-title"
-            title="Compress your files"
-            lead="Add your files, then compress and download them."
-          />
+          {/* The opening already introduces the workspace; the heading names it for screen readers. */}
+          <h2 id="workspace-title" className="visually-hidden">
+            Compress your files
+          </h2>
           <div className={styles.workspace}>
             <Panel
               id="files"
               step={1}
               title="Add files"
-              description="One image or PDF is compressed on its own. Several files are packed into one ZIP."
+              description="One image or PDF is compressed. Several files go into one ZIP."
               actions={
                 selection.length ? (
                   <button type="button" className="btn btn-ghost" onClick={requestClear} disabled={processing}>
@@ -260,17 +220,7 @@ export default function App() {
                   onDownload={handleDownload}
                   onOpenPrintCheck={openPrintCheck}
                 />
-              ) : (
-                <div className={styles.placeholder}>
-                  <span className="icon-tile" data-tone="neutral" aria-hidden="true">
-                    <Download size={20} />
-                  </span>
-                  <p className={styles.placeholderText}>
-                    Your result appears here, with the size before and after and anything worth knowing, followed by the
-                    download.
-                  </p>
-                </div>
-              )}
+              ) : null}
             </Panel>
           </div>
         </section>
@@ -280,7 +230,6 @@ export default function App() {
       </main>
 
       <SiteFooter />
-      <BottomNav activeSection={activeSection} />
       {CAN_SHOW_DIALOG ? (
         <ConfirmDialog
           open={confirming !== null}
@@ -292,15 +241,6 @@ export default function App() {
           onCancel={() => setConfirming(null)}
         />
       ) : null}
-      <input
-        ref={toolInputRef}
-        type="file"
-        className="visually-hidden"
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={handleToolFiles}
-        data-testid="tool-file-input"
-      />
       <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-testid="live-region">
         {announcementFor(snapshot)}
       </div>

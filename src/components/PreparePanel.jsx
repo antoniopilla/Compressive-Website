@@ -25,13 +25,17 @@ const ROUTE_ICONS = {
 
 /**
  * Route summary, the main action (labelled for what it will do), progress and
- * cancellation.
+ * cancellation. Once the result is in, the result panel takes over: running
+ * the same files again would only give the same result.
  *
  * @param {{ snapshot: import('../engine/studio.js').StudioSnapshot, onPrepare: () => void, onCancel: () => void, onRetry: () => void }} props
  */
 export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry }) {
   const { status, plan, selection, progress, error } = snapshot;
   const processing = status === 'processing';
+  const done = status === 'ready';
+  const limitedBrowser = !snapshot.capabilities.workers;
+  if (done && !limitedBrowser) return null;
   const ready = plan && plan.route !== 'idle' && plan.route !== 'invalid';
   const RouteIcon = (plan && ROUTE_ICONS[plan.route]) || Sparkles;
   const percent = progress ? Math.round(progress.fraction * 100) : 0;
@@ -46,7 +50,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
 
   return (
     <div className={styles.panel}>
-      {plan && plan.route !== 'idle' ? (
+      {done ? null : plan && plan.route !== 'idle' ? (
         <div className={styles.plan} data-route={plan.route}>
           <span className="icon-tile" data-tone={plan.route === 'invalid' ? 'error' : undefined} aria-hidden="true">
             {plan.route === 'invalid' ? <CircleAlert size={20} /> : <RouteIcon size={20} />}
@@ -75,7 +79,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
           </div>
         </div>
       ) : (
-        <p className={styles.empty}>Add a file and you will see exactly what happens to it before anything runs.</p>
+        <p className={styles.empty}>Add files to see exactly what will happen before anything runs.</p>
       )}
 
       {processing && progress ? (
@@ -102,12 +106,11 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
             <Ban size={18} aria-hidden="true" /> Cancel
           </button>
         </div>
-      ) : (
+      ) : done ? null : (
         <div className={styles.actions}>
           <button
             type="button"
-            // Once a result is ready, Download is the main action and this one steps back.
-            className={status === 'ready' ? 'btn btn-secondary' : 'btn btn-primary btn-lg'}
+            className="btn btn-primary btn-lg"
             onClick={status === 'canceled' || status === 'failed' ? onRetry : onPrepare}
             disabled={Boolean(disabledReason) || !ready}
             aria-describedby={disabledReason ? 'prepare-hint' : undefined}
@@ -119,7 +122,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
               </>
             ) : (
               <>
-                <Sparkles size={18} aria-hidden="true" /> {status === 'ready' ? 'Run again' : primaryActionLabel(ready ? plan.route : undefined)}
+                <Sparkles size={18} aria-hidden="true" /> {primaryActionLabel(ready ? plan.route : undefined)}
               </>
             )}
           </button>
@@ -132,7 +135,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
         </div>
       )}
 
-      {snapshot.capabilities.workers ? null : (
+      {limitedBrowser ? (
         <p className="callout" data-tone="info" role="note">
           <Info size={18} aria-hidden="true" />
           <span>
@@ -140,7 +143,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
             a recent version of Chrome, Edge, Firefox or Safari.
           </span>
         </p>
-      )}
+      ) : null}
       {status === 'canceled' ? (
         <p className="callout" role="note">
           <Ban size={18} aria-hidden="true" />

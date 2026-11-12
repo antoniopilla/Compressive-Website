@@ -17,7 +17,7 @@
 
 ## Overview
 
-**Compressive** shrinks PNG, JPG and WebP images, tidies PDFs and zips batches of files, all on the visitor's own device. Visitors pick a tool (Compress PNG, Compress JPG, Compress WebP, Shrink a PDF, Zip files, Check print sharpness) or drop files in, see exactly what will happen before anything runs, and download the result: **pick a tool or drop files → compress → review → download**.
+**Compressive** shrinks PNG, JPG and WebP images, tidies PDFs and zips batches of files, all on the visitor's own device. Visitors add files straight from the first screen, see exactly what will happen before anything runs, and download the result: **add files → compress → review → download**.
 
 It compresses only where that is safe. Every lossy copy must pass a visual check against the original, every PDF rewrite and ZIP is verified before it can be downloaded, vector and Photoshop files are never altered, and whenever compressing would not help or could change how a file looks, the original comes back with the reason.
 
@@ -62,8 +62,8 @@ There is no backend, database, account, upload, analytics or API key. Files are 
 
 - **One design system** — a light grey page, white cards with hairline borders and soft shadows, blue pill buttons for the main action, and outline icons drawn with the same 1.75px line. Colours, type sizes, 4px-based spacing, corner radii (10px fields, 14–20px cards, 28px dialogs), shadows and motion are tokens in `src/styles/global.css`, which also holds the shared button, card, badge, callout, field and icon-tile classes. Inter is bundled with the site.
 - **Light, Dark and Auto themes** — applied before first paint; dark mode uses charcoal surfaces with a brighter blue, and text meets WCAG AA (4.5:1) on every surface in both.
-- **Clear actions and states** — each step has one main action; empty, loading, success, warning, error and disabled states are designed, and every status colour comes with a text label. Clearing files, or starting over before the result has been downloaded, asks first and says what will be removed.
-- **Accessible by default** — keyboard-only use, a visible focus outline, a skip link, live-region announcements, a confirmation dialog that keeps focus and closes with Escape, 44px+ targets, a phone bottom bar, and reduced-motion support. Motion is limited to short hover and press responses.
+- **Clear actions and states** — each step has one main action; empty, loading, success, warning, error and disabled states are designed, and every status colour comes with a text label. Clearing files, or starting over before the result has been downloaded, asks first and says what will be removed. A result leads with the sizes and the download; its per-file details stay folded unless a file was kept as it was or a print size was entered.
+- **Accessible by default** — keyboard-only use, a visible focus outline, a skip link, live-region announcements, a confirmation dialog that keeps focus and closes with Escape, 44px+ targets and reduced-motion support. Phones get one column in task order, with the section links in the footer. Motion is limited to short press and drag-over responses.
 
 ## Screenshots
 
@@ -141,7 +141,7 @@ Compressive-Website/
 │   ├── workers/                 # image, pdf and zip worker entry points
 │   ├── hooks/                   # useFileStudio, useDownloads, usePreference, useReducedMotion, useActiveSection
 │   ├── components/              # Interface (CSS Modules): Hero, Panel, DropZone, ResultsPanel, ConfirmDialog, …
-│   ├── ui/                      # Tool definitions, page sections, labels, drag-and-drop helpers
+│   ├── ui/                      # Page sections, labels, accepted file types, drag-and-drop helpers
 │   └── styles/global.css        # Design tokens, light/dark themes, base styles, shared component classes
 ├── tests/                       # Vitest suites + generated fixtures (tests/fixtures/builders.js)
 ├── e2e/                         # Playwright suites
@@ -245,9 +245,9 @@ Result: sizes before and after, checks, notes ──▶ Download
                                               └─▶ Download original (when a copy was made)
 ```
 
-1. **Pick a tool or drop files.** Each tool opens a file picker for its type; Choose files and the drop zone accept any supported file. A single-file tool starts a fresh selection, while Zip files adds to it.
+1. **Add files.** Drop them on the drop zone or use **Choose files**. One image or PDF is compressed on its own; two or more files are packed into one ZIP.
 2. **Review the plan.** Before anything runs, the Compress step says exactly what will happen to the selection, or which file needs attention and why.
-3. **Compress, then download.** The result shows the size before and after, the time taken, what was checked and anything worth knowing. When a single image or PDF gets a compressed copy, **Download original** stays next to it.
+3. **Compress, then download.** The result shows the size before and after, the saving and anything worth knowing. **File details** shows what was checked for each file, and opens by itself when a file was kept as it was or a print size was entered. When a single image or PDF gets a compressed copy, **Download original** stays next to it.
 4. **Printing it? (optional)** Enter the print width and height, or pick a common size. Each file shows its effective PPI; if the download would print soft, it stays locked until you confirm, change the size or choose a higher-resolution file.
 
 ## Processing Limits
@@ -281,13 +281,13 @@ One 8000 × 8000 RGBA buffer is 256,000,000 bytes, and image preparation can hol
 | `npm run test:watch` | Vitest in watch mode |
 | `npm run test:e2e` | Playwright in Chromium, Firefox and WebKit against a fresh production build on port 4183, so it never clashes with `npm run preview` |
 
-During this documentation update, lint, all 159 unit tests and the Playwright suite (97 passed and 2 skipped by design across Chromium, Firefox and WebKit) passed. Fixtures are generated in code (`tests/fixtures/builders.js`); no customer artwork is committed, and private test files belong in `fixtures/private/`, which Git ignores.
+During this documentation update, lint, all 157 unit tests and the Playwright suite (94 passed and 2 skipped by design across Chromium, Firefox and WebKit) passed. Fixtures are generated in code (`tests/fixtures/builders.js`); no customer artwork is committed, and private test files belong in `fixtures/private/`, which Git ignores.
 
 <details>
 <summary><strong>Test coverage</strong></summary>
 
 - **`npm run test`** covers routing (including casing, MIME ambiguity and PDF-typed AI files), validation, filename sanitising, duplicates and download types, PPI maths and units, header probes (orientation, transparency, animation, ICC, bit depth, the windowed reader and the header step cap), image decision rules (including when to skip a quality or stop early, and the resize size check), the visual check (identical copies, lost detail, damage confined to one area, colour-only changes, hidden transparent colour, tiny images), PNG metadata removal and the greyscale colour-profile swap, ZIP payload preservation by SHA-256, compression policy, cancellation, the archive ceiling, verification failure, PDF fixtures (text, vector grid, paths, page boxes, rotation, incremental revisions, indirect lengths, encrypted, signed, PDF/X, PDF 2.0, malformed, ambiguous), the worker protocol (results, errors, stale messages, timeouts, cancellation, failed start vs crash), task-runner fallbacks, the controller lifecycle (cancel, stale results, removal during inspection, acknowledgement invalidation, retry, reset, dispose), StrictMode adapter cleanup, object-URL revocation and drop-zone behaviour.
-- **`npm run test:e2e`** builds for production and drives Chromium, Firefox and WebKit against `vite preview`. Playwright's WebKit build has no `OffscreenCanvas` in workers (real Safari has since 16.4), so there images are processed on the page; Safari's worker path is covered by running Chromium with Safari's user agent, and the page fallback by serving the image worker without `OffscreenCanvas`. It covers the security headers and the CSP `<meta>` tag, the served licences file, the navigation (the current section marked while scrolling, the footer links, Back to top, the theme switch), the phone bottom bar (44px targets, never covering the page), reduced motion, inline print-size errors, the hero's Choose files and tool buttons, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation, a smooth camera-quality photo more than halved at quality 75, WebP through libwebp, lossless PNG through OxiPNG with transparency kept (and a resized PNG), each encoder's `.wasm` loading under the production CSP, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, the Clear all and Start over confirmations, drag-and-drop, keyboard-only use, and no horizontal overflow at 320–1366 px in light and dark modes.
+- **`npm run test:e2e`** builds for production and drives Chromium, Firefox and WebKit against `vite preview`. Playwright's WebKit build has no `OffscreenCanvas` in workers (real Safari has since 16.4), so there images are processed on the page; Safari's worker path is covered by running Chromium with Safari's user agent, and the page fallback by serving the image worker without `OffscreenCanvas`. It covers the security headers and the CSP `<meta>` tag, the served licences file, the navigation (the current section marked while scrolling, the footer links, Back to top, the theme switch), Choose files on the first screen at desktop and phone sizes (phones leave the section links to the footer), reduced motion, inline print-size errors, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation and folded file details, the print check opened from a result, a smooth camera-quality photo more than halved at quality 75, WebP through libwebp, lossless PNG through OxiPNG with transparency kept (and a resized PNG), each encoder's `.wasm` loading under the production CSP, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, the Clear all and Start over confirmations, drag-and-drop, keyboard-only use, and no horizontal overflow at 320–1366 px in light and dark modes.
 
 </details>
 

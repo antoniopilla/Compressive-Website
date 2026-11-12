@@ -33,7 +33,7 @@ export default function SiteFooter() {
             </li>
           </ul>
         </nav>
-        <a className={styles.top} href="#tools">
+        <a className={styles.top} href="#top">
           <ArrowUp size={16} aria-hidden="true" /> Back to top
         </a>
       </div>

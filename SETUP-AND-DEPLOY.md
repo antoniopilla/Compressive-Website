@@ -78,7 +78,7 @@ This guide takes **Compressive** from a folder on your computer to a free public
   npm run dev
   ```
 - **Expected result:** a line like `Local:   http://localhost:5173/`. Hold **Ctrl** and click the link, or paste it into your browser.
-- **Try it:** click a tool such as **Compress PNG**, or drop an image, a PDF or several files together. Select **Compress** (or **Create ZIP**), review the result, then **Download**. To see the resolution warning, open **Printing it?**, pick **Poster** and try a small image.
+- **Try it:** select **Choose files**, or drop an image, a PDF or several files together. Select **Compress image** (or **Compress PDF** or **Create ZIP**), review the result, then **Download**. To see the resolution warning, open **Printing it?**, pick **Poster** and try a small image.
 - **Common failure:** `Port 5173 is in use`. Vite picks the next port automatically; use the address it prints.
 
 ### 10. Run the checks

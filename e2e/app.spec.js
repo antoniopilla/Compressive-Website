@@ -22,6 +22,7 @@ import {
   openPrintCheck,
   prepare,
   setPrintSize,
+  showFileDetails,
   startOver,
   withExifOrientation,
   workersCanDraw,
@@ -90,7 +91,7 @@ test('serves the security headers that back the privacy promise', async ({ page,
   const metaPolicy = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
   expect(metaPolicy).toContain("connect-src 'self'");
   expect(metaPolicy).toContain("script-src 'self' 'wasm-unsafe-eval';");
-  await expect(page.getByText('Your files stay on your device.')).toBeVisible();
+  await expect(page.getByText('Files are read and compressed by your own browser. They are never uploaded.')).toBeVisible();
 });
 
 test('ships the licences of the open-source software it includes', async ({ request, baseURL }) => {
@@ -137,7 +138,7 @@ test('protected vectors download byte-for-byte', async ({ page }) => {
     await chooseFiles(page, [fixture]);
     await expect(page.getByText('Vector file', { exact: false }).first()).toBeVisible();
     await prepare(page);
-    await expect(page.getByText('Kept exactly', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('results').getByText('Your vector file is ready, kept exactly as it was')).toBeVisible();
     const saved = await download(page, page.getByTestId('download-primary'));
     expect(saved.name).toBe(fixture.name);
     expect(sha256(saved.bytes)).toBe(sha256(fixture.buffer));
@@ -157,6 +158,8 @@ test('several files become a verified ZIP of the originals', async ({ page }) =>
   await expect(page.getByText(/packaged unchanged into one ZIP/).first()).toBeVisible();
   await prepare(page);
   await expect(page.getByText(/All 4 files were extracted/)).toBeVisible();
+  // The folded per-file details still say how many files they hold.
+  await expect(page.getByTestId('results').getByText('4 files', { exact: true })).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toMatch(/^compressive-originals-4-files-\d{4}-\d{2}-\d{2}\.zip$/);
   const zip = await JSZip.loadAsync(saved.bytes);
@@ -173,7 +176,11 @@ test('compresses a JPEG in a worker, applying camera orientation', async ({ page
   await chooseFiles(page, [{ name: 'Camera Shot.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
   await expect(page.getByText('2,000 × 3,000 px').first()).toBeVisible();
   await prepare(page);
-  await expect(page.getByText('Compressed', { exact: true })).toBeVisible();
+  // A straightforward result keeps its per-file details folded until asked for.
+  const outcome = page.getByText('Compressed', { exact: true });
+  await expect(outcome).toBeHidden();
+  await showFileDetails(page);
+  await expect(outcome).toBeVisible();
   await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
   await expect(page.getByText(/^Visual check: [\d.]+% similar overall/)).toBeVisible();
   await expect(page.getByText('The camera orientation was applied to the pixels.')).toBeVisible();
@@ -208,6 +215,7 @@ test.describe("Safari's decoding path", () => {
     const jpeg = withExifOrientation(await makeImage(page, { width: 1500, height: 1000, quality: 1 }), 6);
     await chooseFiles(page, [{ name: 'iPhone photo.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
     await prepare(page);
+    await showFileDetails(page);
     await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
     await expect(page.getByText('Processed on the page because this browser cannot process images in the background.')).toHaveCount(0);
     const saved = await download(page, page.getByTestId('download-primary'));
@@ -226,6 +234,7 @@ test('falls back to the page when the browser cannot process images in the backg
   const jpeg = await encodePhoto({ type: 'image/jpeg', width: 1200, height: 800, quality: 95 });
   await chooseFiles(page, [{ name: 'fallback.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText(/^Compressed with MozJPEG at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
   await expect(page.getByText('Processed on the page because this browser cannot process images in the background.')).toBeVisible();
 });
@@ -234,15 +243,20 @@ test('a smooth photo saved at camera quality shrinks by more than half and still
   const jpeg = await encodePhoto({ type: 'image/jpeg', width: 3000, height: 2000, quality: 95 });
   await chooseFiles(page, [{ name: 'sky.jpg', mimeType: 'image/jpeg', buffer: jpeg }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText('Compressed with MozJPEG at quality 75, then compared with your original: it looks the same.')).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.bytes.length).toBeLessThan(jpeg.length * 0.5);
+  // Printing it? The offer opens the print check with the width field ready to type in.
+  await page.getByRole('button', { name: 'Check if it will look sharp' }).click();
+  await expect(page.getByLabel(/^Width/)).toBeFocused();
 });
 
 test('compresses a WebP with libwebp and checks the copy', async ({ page }) => {
   const webp = await encodePhoto({ type: 'image/webp', width: 2400, height: 1600, quality: 95 });
   await chooseFiles(page, [{ name: 'banner.webp', mimeType: 'image/webp', buffer: webp }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText(/^Compressed with WebP at quality \d+, then compared with your original: it looks the same\.$/)).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toBe('banner-prepared.webp');
@@ -255,6 +269,7 @@ test('keeps PNG transparency and colours', async ({ page }) => {
   const png = await makeImage(page, { width: 900, height: 600, type: 'image/png', alpha: true });
   await chooseFiles(page, [{ name: 'overlay.png', mimeType: 'image/png', buffer: png }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText('Optimised losslessly with OxiPNG: every pixel is unchanged.')).toBeVisible();
   expect(requests.some((request) => /squoosh_oxipng_bg-[\w-]+\.wasm$/.test(request.url()))).toBe(true);
   const saved = await download(page, page.getByTestId('download-primary'));
@@ -299,6 +314,7 @@ test('keeps PNG transparency and colours', async ({ page }) => {
   const wide = await makeImage(page, { width: 8400, height: 300, type: 'image/png', alpha: true });
   await chooseFiles(page, [{ name: 'wide-overlay.png', mimeType: 'image/png', buffer: wide }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText('Compressed', { exact: true })).toBeVisible();
   const resized = await download(page, page.getByTestId('download-primary'));
   expect(await probeRaster(new Blob([resized.bytes]), 'png')).toMatchObject({ width: 8000, height: 285, hasAlpha: true });
@@ -322,6 +338,7 @@ test('keeps animated images unchanged', async ({ page }) => {
   const apng = pngBytes({ width: 64, height: 64, animation: { frames: 3 } });
   await chooseFiles(page, [{ name: 'spinner.png', mimeType: 'image/png', buffer: apng }]);
   await prepare(page);
+  // A file kept as it was opens the details by itself, so the reason shows without a click.
   await expect(page.getByText('Original kept', { exact: true })).toBeVisible();
   await expect(page.getByText(/animated/).first()).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
@@ -373,6 +390,7 @@ test('tidies a PDF without touching its pages and keeps encrypted PDFs', async (
   const pdf = await printPdfBytes({ bloatBytes: 300_000 });
   await chooseFiles(page, [{ name: 'Proof.pdf', mimeType: 'application/pdf', buffer: pdf }]);
   await prepare(page);
+  await showFileDetails(page);
   await expect(page.getByText('Smaller', { exact: true })).toBeVisible();
   const saved = await download(page, page.getByTestId('download-primary'));
   expect(saved.name).toBe('Proof-prepared.pdf');
@@ -474,48 +492,45 @@ test('works with the keyboard alone', async ({ page, browserName }) => {
   expect(event.suggestedFilename()).toBe('logo.eps');
 });
 
-test('hero tool buttons open the right picker and the print check', async ({ page }) => {
-  const tools = page.getByRole('list', { name: 'Tools' });
-  const selected = page.getByRole('list', { name: 'Selected files' }).getByRole('listitem');
+test('the first screen leads straight to adding files, on phones too', async ({ page, baseURL }) => {
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  const chooseButton = page.locator('#choose-files-button');
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto(baseURL);
+  await expect(chooseButton).toBeInViewport({ ratio: 1 });
+  await expect(nav).toBeVisible();
 
-  let [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.locator('#tools').getByRole('button', { name: 'Choose files' }).click()]);
+  // Phones leave the section links to the footer: the page is short and in task order.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(baseURL);
+  await expect(chooseButton).toBeInViewport({ ratio: 1 });
+  await expect(nav).toBeHidden();
+  const footer = page.getByRole('navigation', { name: 'Footer' });
+  for (const name of ['Compress', 'How it works', 'Privacy']) {
+    await expect(footer.getByRole('link', { name, exact: true })).toBeVisible();
+  }
+
+  // One picker takes any number of supported files.
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), chooseButton.click()]);
   expect(chooser.isMultiple()).toBe(true);
-  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toContain('.pdf');
+  expect(await page.getByTestId('file-input').getAttribute('accept')).toContain('.pdf');
   await chooser.setFiles([]);
-
-  [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Zip files' }).click()]);
-  expect(chooser.isMultiple()).toBe(true);
-  await chooser.setFiles([
-    { name: 'a.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svgWithMetadata()) },
-    { name: 'b.eps', mimeType: 'application/postscript', buffer: Buffer.from(epsBytes()) },
-  ]);
-  await expect(selected).toHaveCount(2);
-
-  [chooser] = await Promise.all([page.waitForEvent('filechooser'), tools.getByRole('button', { name: 'Compress JPG' }).click()]);
-  expect(chooser.isMultiple()).toBe(false);
-  expect(await page.getByTestId('tool-file-input').getAttribute('accept')).toBe('.jpg,.jpeg');
-  await chooser.setFiles({ name: 'photo.jpg', mimeType: 'image/jpeg', buffer: await makeImage(page, { width: 300, height: 200 }) });
-  // A single-file tool starts a fresh selection.
-  await expect(selected).toHaveCount(1);
-  await expect(selected.first()).toContainText('photo.jpg');
-
-  await tools.getByRole('button', { name: 'Check print sharpness' }).click();
-  await expect(page.getByLabel(/^Width/)).toBeFocused();
 });
 
 test('the main navigation marks the current section and jumps to each one', async ({ page }) => {
   const nav = page.getByRole('navigation', { name: 'Main' });
   const link = (name) => nav.getByRole('link', { name, exact: true });
-  await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
+  // The page opens on the introduction to the workspace, which counts as its first section.
+  await expect(link('Compress')).toHaveAttribute('aria-current', 'location');
 
   await link('Privacy').click();
   await expect(page.getByRole('heading', { name: 'Privacy', level: 2 })).toBeInViewport();
   await expect(link('Privacy')).toHaveAttribute('aria-current', 'location');
-  await expect(link('Tools')).not.toHaveAttribute('aria-current');
+  await expect(link('Compress')).not.toHaveAttribute('aria-current');
 
   await link('Compress').click();
   await expect(link('Compress')).toHaveAttribute('aria-current', 'location');
-  await expect(page.getByRole('heading', { name: 'Compress your files' })).toBeInViewport();
+  await expect(page.getByRole('heading', { name: 'Step 1: Add files' })).toBeInViewport();
 
   // The footer repeats the key links and leads back to the top.
   const footer = page.getByRole('navigation', { name: 'Footer' });
@@ -525,7 +540,8 @@ test('the main navigation marks the current section and jumps to each one', asyn
   await expect(licences).toHaveAttribute('href', '/third-party-licences.txt');
   await expect(licences).toHaveAttribute('target', '_blank');
   await page.getByRole('link', { name: 'Back to top' }).click();
-  await expect(link('Tools')).toHaveAttribute('aria-current', 'location');
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(link('Compress')).toHaveAttribute('aria-current', 'location');
 
   // The radios are visually hidden; people click the option's label.
   const themeOption = (name) => page.locator('label').filter({ has: page.getByRole('radio', { name }) });
@@ -536,41 +552,29 @@ test('the main navigation marks the current section and jumps to each one', asyn
   await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT_BACKGROUND);
 });
 
-test('phones get a bottom navigation bar with thumb-sized links', async ({ page, baseURL }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto(baseURL);
-  // Only one main navigation is shown at a time: the bottom bar on phones.
-  const nav = page.getByRole('navigation', { name: 'Main' });
-  await expect(nav).toHaveCount(1);
-  const bar = await nav.boundingBox();
-  expect(Math.round(bar.y + bar.height)).toBe(812);
-  for (const link of await nav.getByRole('link').all()) {
-    const box = await link.boundingBox();
-    expect(box.width).toBeGreaterThanOrEqual(44);
-    expect(box.height).toBeGreaterThanOrEqual(44);
-  }
-  await nav.getByRole('link', { name: 'How it works' }).click();
-  await expect(nav.getByRole('link', { name: 'How it works' })).toHaveAttribute('aria-current', 'location');
-
-  // The page reserves room for the bar, so it never covers the last links. Jump straight to the
-  // bottom: the page scrolls smoothly, and Firefox would otherwise still be moving when measured.
-  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
-  await expect(nav.getByRole('link', { name: 'Privacy' })).toHaveAttribute('aria-current', 'location');
-  const backToTop = await page.getByRole('link', { name: 'Back to top' }).boundingBox();
-  expect(backToTop.y + backToTop.height).toBeLessThanOrEqual(bar.y);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
-});
-
 test('reduced motion removes movement and transitions', async ({ page, baseURL }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(baseURL);
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');
-  const tool = page.getByRole('button', { name: 'Compress PNG' });
-  const durations = await tool.evaluate((element) => getComputedStyle(element).transitionDuration.split(',').map(parseFloat));
+  // The motion tokens go flat, so nothing lifts or shrinks wherever they are used.
+  const tokens = await page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement);
+    return [root.getPropertyValue('--hover-lift').trim(), root.getPropertyValue('--press-scale').trim()];
+  });
+  expect(tokens).toEqual(['0px', '1']);
+  const button = page.locator('#choose-files-button');
+  const durations = await button.evaluate((element) => getComputedStyle(element).transitionDuration.split(',').map(parseFloat));
   expect(durations.every((seconds) => seconds < 0.001)).toBe(true);
-  // Hovering no longer raises the button: any transform left is the identity.
-  await tool.hover();
-  expect(await tool.evaluate((element) => getComputedStyle(element).transform)).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+  // Pressing the button no longer shrinks it: any transform left is the identity. The pointer
+  // moves away before it is released, so no file picker opens.
+  await button.scrollIntoViewIfNeeded();
+  const box = await button.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  const pressed = await button.evaluate((element) => getComputedStyle(element).transform);
+  await page.mouse.move(1, 1);
+  await page.mouse.up();
+  expect(pressed).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
 });
 
 test('print size fields explain mistakes inline and confirm a valid size', async ({ page }) => {

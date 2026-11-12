@@ -80,3 +80,10 @@
 .zone:not([data-compact]) .button {
   margin-top: var(--space-2);
 }
+
+/* Phones: less air inside the zone keeps Choose files on the first screen. */
+@media (max-width: 520px) {
+  .zone:not([data-compact]) {
+    padding-block: var(--space-6);
+  }
+}

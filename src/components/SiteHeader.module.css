@@ -33,7 +33,7 @@
   text-decoration: none;
 }
 
-/* Main navigation: shown from tablet width up; phones use the bottom bar. */
+/* Main navigation: shown from tablet width up; on phones the footer carries the links. */
 .nav {
   display: none;
   flex: 1;
