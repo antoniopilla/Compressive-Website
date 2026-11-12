@@ -281,7 +281,7 @@ One 8000 × 8000 RGBA buffer is 256,000,000 bytes, and image preparation can hol
 | `npm run test:watch` | Vitest in watch mode |
 | `npm run test:e2e` | Playwright in Chromium, Firefox and WebKit against a fresh production build on port 4183, so it never clashes with `npm run preview` |
 
-During this documentation update, lint, all 159 unit tests and the Playwright suite (94 passed and 2 skipped by design across Chromium, Firefox and WebKit) passed. Fixtures are generated in code (`tests/fixtures/builders.js`); no customer artwork is committed, and private test files belong in `fixtures/private/`, which Git ignores.
+During this documentation update, lint, all 159 unit tests and the Playwright suite (97 passed and 2 skipped by design across Chromium, Firefox and WebKit) passed. Fixtures are generated in code (`tests/fixtures/builders.js`); no customer artwork is committed, and private test files belong in `fixtures/private/`, which Git ignores.
 
 <details>
 <summary><strong>Test coverage</strong></summary>
