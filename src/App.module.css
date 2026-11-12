@@ -11,50 +11,40 @@
   width: 100%;
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: 0 var(--gutter) var(--space-16);
+  padding: 0 var(--gutter) var(--section-gap);
 }
 
-/* The workspace: one shared cream tray holding both steps. */
+/* The workspace: the section heading, then one card per step. */
 .workspaceSection {
   display: grid;
-  gap: var(--dp-spacing-gap);
+  gap: var(--space-8);
   margin-top: var(--section-gap);
-  padding: var(--tray-padding);
-  border-radius: var(--radius-tray);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-tray);
-  scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
 .workspaceSection:focus {
   outline: none;
 }
 
-.sectionHeading {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.sectionTitle {
-  font-size: var(--text-2xl);
-}
-
-.sectionLead {
-  max-width: 62ch;
-  color: var(--color-text-muted);
-}
-
 .workspace {
   display: grid;
-  gap: var(--dp-spacing-gap-compact);
+  gap: var(--space-6);
 }
 
+/* Empty state for step 2, until there is a result. */
 .placeholder {
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--dp-radius-disclosure);
-  background: var(--color-surface-2);
-  box-shadow: var(--shadow-well);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-6);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.placeholderText {
+  max-width: 34ch;
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 @media (min-width: 768px) {

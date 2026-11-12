@@ -7,59 +7,33 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-2);
 }
 
 .field {
   display: grid;
-  gap: var(--space-2);
+  gap: 6px;
   min-width: 0;
 }
 
 .field label {
   font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-medium);
 }
 
-/* Fields are wells pressed into the cushion. */
-.field input,
-.field select {
-  width: 100%;
-  min-height: var(--control-height);
-  padding: var(--space-2) var(--space-4);
-  border: 0;
-  border-radius: var(--dp-radius-control);
-  background: var(--color-surface-2);
-  box-shadow: var(--shadow-well);
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
-  transition: box-shadow var(--dp-motion-interaction) var(--ease-out);
-}
-
-.field input:hover,
-.field select:hover {
-  box-shadow:
-    inset 0 0 0 2px var(--color-border-strong),
-    var(--shadow-well);
-}
-
-.field input[aria-invalid='true'] {
-  box-shadow:
-    inset 0 0 0 2px var(--color-error),
-    var(--shadow-well);
-}
-
+/* Inline validation: the message sits right under the field it is about. */
 .fieldError {
   display: flex;
   align-items: flex-start;
   gap: var(--space-1);
   color: var(--color-error);
   font-size: var(--text-sm);
+  line-height: var(--leading-snug);
 }
 
 .fieldError svg {
   flex: none;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .field:last-child {
@@ -68,7 +42,7 @@
 
 /* Align the swap button with the inputs, below their labels. */
 .swap {
-  margin-top: calc(var(--text-sm) * var(--leading-normal) + var(--space-2));
+  margin-top: calc(var(--text-sm) * var(--leading-normal) + 6px);
 }
 
 .success {
@@ -76,6 +50,7 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-success);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
 }
 
@@ -94,54 +69,53 @@
   gap: var(--space-2);
 }
 
+/* A label above the chips, like the fields' labels, so the chips wrap evenly. */
 .presetsLabel {
+  flex-basis: 100%;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
-/* Preset chips: small lavender pills that raise on hover and press on click. */
+/* Preset chips: outlined pills that fill on hover. */
 .preset {
   min-height: var(--control-height);
   padding: var(--space-1) var(--space-4);
-  border: 0;
-  border-radius: var(--dp-radius-control);
-  background: var(--dp-color-surface-compare);
-  box-shadow: var(--shadow-control);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
   color: var(--color-text);
   font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    transform var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    border-color var(--duration) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
 
 .preset:hover {
-  transform: translateY(var(--hover-lift));
-  box-shadow: var(--shadow-raised);
+  border-color: var(--color-text-muted);
+  background: var(--color-hover);
 }
 
 .preset:active {
-  transform: translateY(var(--press-shift)) scale(var(--press-scale));
-  box-shadow: var(--shadow-pressed);
+  background: var(--color-pressed);
+  transform: scale(var(--press-scale));
 }
 
 .presetSize {
   color: var(--color-text-muted);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-regular);
 }
 
 .policy {
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--dp-radius-disclosure);
-  background: var(--dp-color-surface-warm);
-  box-shadow: var(--shadow-control);
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }
 
 .policy strong {
   color: var(--color-text);
+  font-weight: var(--weight-semibold);
 }
 
 @media (min-width: 560px) {

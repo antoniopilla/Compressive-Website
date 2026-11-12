@@ -1,17 +1,14 @@
-/* The footer: a cream tray closing the page. */
+/* The footer: a hairline, then the name, the key links and a way back up. */
 .footer {
-  padding: 0 var(--gutter) var(--space-6);
+  border-top: 1px solid var(--color-border);
 }
 
 .inner {
   display: grid;
   gap: var(--space-6);
-  max-width: calc(var(--content-max) - 2 * var(--gutter));
+  max-width: var(--content-max);
   margin: 0 auto;
-  padding: var(--space-8) var(--tray-padding);
-  border-radius: var(--radius-tray);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-tray);
+  padding: var(--space-10) var(--gutter) var(--space-8);
 }
 
 .brand {
@@ -21,19 +18,20 @@
 }
 
 .name {
-  font-size: var(--text-lg);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-heading);
+  letter-spacing: var(--tracking-title);
 }
 
 .tagline {
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .links ul {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
+  gap: 0 var(--space-1);
+  margin-left: calc(-1 * var(--space-3));
   list-style: none;
 }
 
@@ -41,28 +39,30 @@
 .top {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 6px;
   min-height: var(--control-height);
   padding: 0 var(--space-3);
-  border-radius: var(--dp-radius-control);
-  color: var(--color-text);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   transition:
-    background-color var(--dp-motion-interaction) var(--ease-out),
-    color var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    color var(--duration) var(--ease-standard);
 }
 
 .links a:hover,
 .top:hover {
   background: var(--color-hover);
   color: var(--color-text);
+  text-decoration: none;
 }
 
 .top {
   justify-self: start;
   margin-left: calc(-1 * var(--space-3));
-  font-weight: var(--weight-bold);
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
 }
 
 /* Phones: the links settle into two columns. */
@@ -70,7 +70,6 @@
   .links ul {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-left: calc(-1 * var(--space-3));
   }
 }
 
@@ -78,6 +77,10 @@
   .inner {
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
+  }
+
+  .links ul {
+    margin-left: 0;
   }
 
   .top {

@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="public/favicon.svg" alt="Compressive" width="96" />
-
 # Compressive — Private In-Browser File Compressor
 
 **A free file compressor that runs entirely in the visitor's browser — smart JPG and WebP compression checked against the original, lossless PNG optimisation, verified PDF tidy-ups and ZIPs, byte-for-byte protection for vector and Photoshop files, and a print-sharpness check, without a single upload.**
@@ -60,11 +58,12 @@ There is no backend, database, account, upload, analytics or API key. Files are 
 - **Budgets checked up front** — pixel and byte budgets are read from file headers before anything is decoded. Browsers that cannot run a task in a worker fall back to the page within smaller budgets.
 - **Stale-result protection** — every job has an id; changing the selection cancels the running job, and a late result is ignored.
 
-### Claymorphism interface
+### Clean, minimal interface
 
-- **Clay design system** — soft, inflated forms lit from the upper left: a pink lead cushion with the six tools beside a static clay sculpture, cream trays, pastel cushions and thick pill buttons, all built from `--dp-*` design tokens in `src/styles/global.css`. Instrument Sans is bundled with the site.
-- **Light, Dark and Auto themes** — applied before first paint; dark mode keeps the same roles in deep clay tones, and text meets WCAG AA (4.5:1) on every surface.
-- **Accessible by default** — keyboard-only use, a 3px focus outline kept apart from the shading, a skip link, live-region announcements, 44px+ targets, a phone bottom bar, and reduced-motion support. Motion is limited to short hover and press responses.
+- **One design system** — a light grey page, white cards with hairline borders and soft shadows, blue pill buttons for the main action, and outline icons drawn with the same 1.75px line. Colours, type sizes, 4px-based spacing, corner radii (10px fields, 14–20px cards, 28px dialogs), shadows and motion are tokens in `src/styles/global.css`, which also holds the shared button, card, badge, callout, field and icon-tile classes. Inter is bundled with the site.
+- **Light, Dark and Auto themes** — applied before first paint; dark mode uses charcoal surfaces with a brighter blue, and text meets WCAG AA (4.5:1) on every surface in both.
+- **Clear actions and states** — each step has one main action; empty, loading, success, warning, error and disabled states are designed, and every status colour comes with a text label. Clearing files, or starting over before the result has been downloaded, asks first and says what will be removed.
+- **Accessible by default** — keyboard-only use, a visible focus outline, a skip link, live-region announcements, a confirmation dialog that keeps focus and closes with Escape, 44px+ targets, a phone bottom bar, and reduced-motion support. Motion is limited to short hover and press responses.
 
 ## Screenshots
 
@@ -78,7 +77,7 @@ No screenshots are tracked in this repository. The live site at [compressive.pag
 | **Image encoders** | WebAssembly builds from Squoosh via jSquash (pinned): `@jsquash/jpeg` 1.6.0 (MozJPEG), `@jsquash/webp` 1.5.0 (libwebp), `@jsquash/oxipng` 2.3.0 (OxiPNG); `browser-image-compression` 2.0.2 for decoding, resizing and orientation only |
 | **Documents & archives** | pdf-lib 1.17.1, JSZip 3.10.2 |
 | **Processing** | Framework-independent engine (vanilla ES modules + JSDoc), module Web Workers with a versioned message protocol |
-| **Fonts** | Instrument Sans through `@fontsource-variable/instrument-sans` 5.3.0, served from the site |
+| **Fonts** | Inter through `@fontsource-variable/inter` 5.3.0, served from the site |
 | **Tooling & Tests** | ESLint 10.13, Vitest 5.0.5 with jsdom and Testing Library, Playwright 1.64.1 (Chromium, Firefox and WebKit) |
 | **Deployment** | Cloudflare Pages, with security headers from `public/_headers` |
 
@@ -93,7 +92,7 @@ Package versions above come from the committed lockfile.
 - **JSZip.** The archive is generated through the asynchronous internal stream, which allows cooperative cancel and an output ceiling while generating. Compression is STORE for JPEG, PNG and WebP and DEFLATE level 6 for everything else. Entry names are sanitised (separators, drive letters, `.`/`..`, control and Windows-reserved characters).
 - **pdf-lib.** Loads with `ignoreEncryption: false`, `updateMetadata: false` and `throwOnInvalidObject: true`, and saves with object streams, `addDefaultPage: false` and `updateFieldAppearances: false`. It always writes a `%PDF-1.7` header, keeps only Root, Info and ID in the trailer, does not recompress streams, and cannot guarantee removal of all editing history or application-private data that is still referenced.
 - **PNG colour profiles.** OxiPNG turns colour PNGs whose pixels are all grey into greyscale but keeps their colour profile, which is invalid for greyscale PNGs. Only sRGB profiles reach OxiPNG, so `png-metadata.js` swaps such a profile for the equivalent `sRGB` chunk.
-- **Licences.** `npm run build` writes `third-party-licences.txt` (a plugin in `vite.config.js`) with the licence of every production dependency, including the SIL Open Font License of Instrument Sans, plus the MozJPEG/libjpeg-turbo, libwebp and OxiPNG licences and the Independent JPEG Group statement. The footer links to it.
+- **Licences.** `npm run build` writes `third-party-licences.txt` (a plugin in `vite.config.js`) with the licence of every production dependency, including the SIL Open Font License of Inter, plus the MozJPEG/libjpeg-turbo, libwebp and OxiPNG licences and the Independent JPEG Group statement. The footer links to it.
 
 </details>
 
@@ -141,9 +140,9 @@ Compressive-Website/
 │   │   └── tasks/               # image-task, codecs, png-metadata, pdf-task, zip-task
 │   ├── workers/                 # image, pdf and zip worker entry points
 │   ├── hooks/                   # useFileStudio, useDownloads, usePreference, useReducedMotion, useActiveSection
-│   ├── components/              # Interface (CSS Modules): Hero, Panel, DropZone, PrintCheck, ResultsPanel, …
+│   ├── components/              # Interface (CSS Modules): Hero, Panel, DropZone, ResultsPanel, ConfirmDialog, …
 │   ├── ui/                      # Tool definitions, page sections, labels, drag-and-drop helpers
-│   └── styles/global.css        # Design tokens, light/dark themes, base styles
+│   └── styles/global.css        # Design tokens, light/dark themes, base styles, shared component classes
 ├── tests/                       # Vitest suites + generated fixtures (tests/fixtures/builders.js)
 ├── e2e/                         # Playwright suites
 ├── public/
@@ -288,7 +287,7 @@ During this documentation update, lint, all 159 unit tests and the Playwright su
 <summary><strong>Test coverage</strong></summary>
 
 - **`npm run test`** covers routing (including casing, MIME ambiguity and PDF-typed AI files), validation, filename sanitising, duplicates and download types, PPI maths and units, header probes (orientation, transparency, animation, ICC, bit depth, the windowed reader and the header step cap), image decision rules (including when to skip a quality or stop early, and the resize size check), the visual check (identical copies, lost detail, damage confined to one area, colour-only changes, hidden transparent colour, tiny images), PNG metadata removal and the greyscale colour-profile swap, ZIP payload preservation by SHA-256, compression policy, cancellation, the archive ceiling, verification failure, PDF fixtures (text, vector grid, paths, page boxes, rotation, incremental revisions, indirect lengths, encrypted, signed, PDF/X, PDF 2.0, malformed, ambiguous), the worker protocol (results, errors, stale messages, timeouts, cancellation, failed start vs crash), task-runner fallbacks, the controller lifecycle (cancel, stale results, removal during inspection, acknowledgement invalidation, retry, reset, dispose), StrictMode adapter cleanup, object-URL revocation and drop-zone behaviour.
-- **`npm run test:e2e`** builds for production and drives Chromium, Firefox and WebKit against `vite preview`. Playwright's WebKit build has no `OffscreenCanvas` in workers (real Safari has since 16.4), so there images are processed on the page; Safari's worker path is covered by running Chromium with Safari's user agent, and the page fallback by serving the image worker without `OffscreenCanvas`. It covers the security headers and the CSP `<meta>` tag, the served licences file, the navigation (the current section marked while scrolling, the footer links, Back to top, the theme switch), the phone bottom bar (44px targets, never covering the page), reduced motion, inline print-size errors, the hero's Choose files and tool buttons, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation, a smooth camera-quality photo more than halved at quality 75, WebP through libwebp, lossless PNG through OxiPNG with transparency kept (and a resized PNG), each encoder's `.wasm` loading under the production CSP, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, drag-and-drop, keyboard-only use, and no horizontal overflow at 320–1366 px in light and dark modes.
+- **`npm run test:e2e`** builds for production and drives Chromium, Firefox and WebKit against `vite preview`. Playwright's WebKit build has no `OffscreenCanvas` in workers (real Safari has since 16.4), so there images are processed on the page; Safari's worker path is covered by running Chromium with Safari's user agent, and the page fallback by serving the image worker without `OffscreenCanvas`. It covers the security headers and the CSP `<meta>` tag, the served licences file, the navigation (the current section marked while scrolling, the footer links, Back to top, the theme switch), the phone bottom bar (44px targets, never covering the page), reduced motion, inline print-size errors, the hero's Choose files and tool buttons, byte-for-byte vectors, a verified ZIP, worker JPEG compression with EXIF orientation, a smooth camera-quality photo more than halved at quality 75, WebP through libwebp, lossless PNG through OxiPNG with transparency kept (and a resized PNG), each encoder's `.wasm` loading under the production CSP, animated images, warning acknowledgement and print-size changes, a threshold crossing at 8000 px, PDF tidy-up, an encrypted PDF, cancel and retry, unsupported and empty files, the Clear all and Start over confirmations, drag-and-drop, keyboard-only use, and no horizontal overflow at 320–1366 px in light and dark modes.
 
 </details>
 

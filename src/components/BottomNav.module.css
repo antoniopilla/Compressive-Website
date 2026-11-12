@@ -1,23 +1,30 @@
-/* A cream pill floating above the bottom edge, on a strip of the ground colour. */
+/* Phones: a frosted tab bar along the bottom edge, where a thumb reaches easily. */
 .bar {
   position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 10;
-  padding: var(--space-2) var(--gutter) calc(var(--space-2) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 0 var(--space-2) env(safe-area-inset-bottom);
   background: var(--color-bg);
+  /* A hairline drawn as a shadow, so it adds no height to the bar. */
+  box-shadow: 0 -1px 0 var(--color-border);
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .bar {
+    background: var(--color-bar);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
 }
 
 .list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-1);
-  height: calc(var(--bottom-nav-height) - 2 * var(--space-2));
-  padding: var(--space-1);
-  border-radius: var(--dp-radius-control);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-surface);
+  height: var(--bottom-nav-height);
+  padding: 6px 0;
   list-style: none;
 }
 
@@ -29,33 +36,32 @@
   gap: 2px;
   height: 100%;
   padding: 0 var(--space-1);
-  border-radius: var(--dp-radius-control);
+  border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: var(--dp-typography-caption);
-  font-weight: var(--weight-semibold);
+  font-size: 0.75rem;
+  font-weight: var(--weight-medium);
   line-height: var(--leading-tight);
   text-align: center;
-  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    background-color var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out),
-    color var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    color var(--duration) var(--ease-standard);
 }
 
 .link:hover {
   color: var(--color-text);
+  text-decoration: none;
 }
 
-/* The current section is pressed into the pill. */
+/* The current section: blue on a soft blue fill, in a heavier weight. */
 .link[aria-current] {
-  background: var(--dp-color-accent);
-  box-shadow: var(--shadow-pressed);
-  color: var(--color-text);
-  font-weight: var(--weight-bold);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
 }
 
 .link:focus-visible {
-  outline-offset: -3px;
+  outline-offset: -2px;
 }
 
 @media (min-width: 768px) {

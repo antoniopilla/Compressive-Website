@@ -1,43 +1,40 @@
+/* The opening: copy and the main action, the tools beside it, and the promises beneath. */
 .hero {
   display: grid;
-  gap: var(--dp-spacing-gap);
-  padding-top: var(--space-4);
-}
-
-/* The lead cushion: copy on the left; the sculpture and the tools on the right. */
-.cushion {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-  grid-template-areas:
-    'intro sculpture'
-    'intro tools';
-  gap: var(--space-8) var(--space-12);
-  padding: var(--space-16);
-  border-radius: var(--dp-radius-tray);
-  background: var(--dp-color-accent);
-  box-shadow: var(--shadow-tray-accent);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-10);
+  padding-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
 }
 
 .intro {
-  grid-area: intro;
-  align-self: center;
   display: grid;
-  gap: var(--dp-spacing-paragraph-gap);
+  justify-items: start;
+  align-content: center;
+  gap: var(--space-5);
 }
 
-/* A label inlaid in the cushion, not a button. */
+/* A quiet label above the title, not a button. */
 .kicker {
-  justify-self: start;
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--dp-radius-control);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3) 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   background: var(--color-surface);
-  box-shadow: var(--shadow-well);
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+}
+
+.kicker svg {
+  flex: none;
+  color: var(--color-accent);
 }
 
 .title {
+  max-width: 15em;
   font-size: var(--text-display);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
@@ -47,307 +44,155 @@
 .lead {
   max-width: 34em;
   color: var(--color-text-muted);
-  font-size: var(--text-lg);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3) var(--space-6);
+  gap: var(--space-3) var(--space-2);
   margin-top: var(--space-2);
 }
 
-/* A ghost action: plain text beside the primary button. */
 .secondaryLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control-height);
-  color: var(--color-text);
-  font-weight: var(--weight-bold);
+  padding-inline: var(--space-4);
 }
 
 .toolsBlock {
-  grid-area: tools;
   display: grid;
+  align-content: center;
   gap: var(--space-3);
 }
 
 .toolsTitle {
-  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
 }
 
-/* Two columns where a tool's label fits on one or two lines, otherwise one. */
+/* Two or three columns where a tool's label fits on one or two lines, otherwise one. */
 .tools {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
   gap: var(--space-3);
   list-style: none;
 }
 
-/* Tool buttons: cream cushions with a pastel well, raised on hover and pressed on click. */
+/* Tool cards: lift a little and gain a shadow on hover, settle when pressed. */
 .tool {
-  --tone: var(--dp-color-surface-support);
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
   height: 100%;
-  min-height: calc(var(--icon-tile) + var(--space-6));
-  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2);
-  border: 0;
-  border-radius: var(--dp-radius-surface);
+  min-height: 72px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-control);
+  box-shadow: var(--shadow-xs);
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    transform var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out);
-}
-
-.tools li:nth-child(4n + 2) .tool {
-  --tone: var(--dp-color-surface-compare);
-}
-
-.tools li:nth-child(4n + 3) .tool {
-  --tone: var(--dp-color-surface-warm);
-}
-
-.tools li:nth-child(4n + 4) .tool {
-  --tone: var(--dp-color-surface-cool);
+    transform var(--duration) var(--ease-out),
+    border-color var(--duration) var(--ease-standard),
+    box-shadow var(--duration) var(--ease-standard);
 }
 
 .tool:hover {
   transform: translateY(var(--hover-lift));
+  border-color: var(--color-border-strong);
   box-shadow: var(--shadow-raised);
 }
 
 .tool:active {
-  transform: translateY(var(--press-shift)) scale(var(--press-scale));
-  box-shadow: var(--shadow-pressed);
-}
-
-.toolIcon {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: var(--icon-tile);
-  height: var(--icon-tile);
-  border-radius: 50%;
-  background: var(--tone);
-  box-shadow: var(--shadow-control);
+  transform: scale(var(--press-scale));
+  box-shadow: var(--shadow-xs);
 }
 
 .toolText {
   display: grid;
+  flex: 1;
+  gap: 2px;
   min-width: 0;
 }
 
 .toolLabel {
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 .toolHint {
   color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
 }
 
-/*
- * The sculpture: static molded shapes in their own reserved area, lit from
- * the upper left like everything else. Sizes and positions are fractions of
- * the box, which keeps a 2:1 shape, so the cluster scales as one piece.
- */
-.sculpture {
-  --cast: 12px 18px 28px -10px var(--clay-shade-accent);
-  grid-area: sculpture;
-  align-self: center;
-  justify-self: center;
-  position: relative;
-  width: 100%;
-  max-width: 30rem;
-  aspect-ratio: 2 / 1;
+.toolChevron {
+  flex: none;
+  color: var(--color-text-subtle);
+  transition: color var(--duration) var(--ease-standard);
 }
 
-.sculpture > span {
-  position: absolute;
-  display: block;
-  box-shadow:
-    var(--cast),
-    inset 8px 10px 16px var(--sculpture-light),
-    inset -10px -12px 20px var(--clay-shade);
+.tool:hover .toolChevron {
+  color: var(--color-accent);
 }
 
-.sphere {
-  top: 10%;
-  left: 6%;
-  width: 40%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 30%, var(--sculpture-light), transparent 46%),
-    var(--sculpture-mint);
-}
-
-/* A ring: the hole is pressed into the shape, showing the cushion behind. */
-.ring {
-  top: 4%;
-  left: 58%;
-  width: 30%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--sculpture-blue);
-}
-
-.ring::after {
-  content: '';
-  position: absolute;
-  inset: 28%;
-  border-radius: 50%;
-  background: var(--dp-color-accent);
-  box-shadow: var(--shadow-pressed);
-}
-
-.block {
-  top: 46%;
-  left: 41%;
-  width: 23%;
-  aspect-ratio: 1;
-  border-radius: 30%;
-  background: var(--sculpture-yellow);
-  transform: rotate(-14deg);
-}
-
-.capsule {
-  top: 62%;
-  left: 58%;
-  width: 34%;
-  aspect-ratio: 2.6;
-  border-radius: var(--dp-radius-control);
-  background: var(--sculpture-lavender);
-  transform: rotate(-20deg);
-}
-
-.pebble {
-  top: 8%;
-  left: 34%;
-  width: 10%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 30%, var(--sculpture-light), transparent 50%),
-    var(--sculpture-cream);
-}
-
-/* Supporting facts: one pastel cushion each, beneath the lead cushion. */
+/* The promises: one card, divided into three. */
 .promises {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--dp-spacing-gap);
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
 }
 
 .promise {
-  --tone: var(--dp-color-surface-support);
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--dp-radius-surface);
-  background: var(--tone);
-  box-shadow: var(--shadow-surface);
+  padding: var(--space-5) var(--card-padding);
 }
 
-.promise:nth-child(3n + 2) {
-  --tone: var(--dp-color-surface-warm);
-}
-
-.promise:nth-child(3n + 3) {
-  --tone: var(--dp-color-surface-cool);
-}
-
-.promiseIcon {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: var(--icon-tile);
-  height: var(--icon-tile);
-  border-radius: 50%;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-control);
+.promise + .promise {
+  border-top: 1px solid var(--color-border);
 }
 
 .promiseTitle {
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 .promiseText {
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
   color: var(--color-text-muted);
+  font-size: 0.9375rem;
 }
 
-/* Tighter gaps and a smaller sculpture. */
-@media (max-width: 1100px) {
-  .cushion {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-6) var(--space-8);
-    padding: var(--space-10);
-    border-radius: var(--radius-tray);
-  }
-
-  .sculpture {
-    max-width: 24rem;
-  }
-
+@media (min-width: 760px) {
   .promises {
-    gap: var(--dp-spacing-gap-compact);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .promise {
-    padding: var(--space-5);
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+  }
+
+  .promise + .promise {
+    border-top: 0;
+    border-left: 1px solid var(--color-border);
   }
 }
 
-/* One column: the sculpture moves below the headline, the facts pair up. */
-@media (max-width: 760px) {
-  .cushion {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
-    grid-template-areas:
-      'intro'
-      'sculpture'
-      'tools';
-    padding: var(--tray-padding);
-  }
-
-  .sculpture {
-    max-width: 22rem;
-  }
-
-  .promises {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Phones: fewer, smaller decorative forms and single columns. */
-@media (max-width: 460px) {
-  .sculpture {
-    max-width: 16rem;
-  }
-
-  .sculpture > .capsule,
-  .sculpture > .pebble {
-    display: none;
-  }
-
-  .promises {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .promise {
-    padding: var(--space-4) var(--space-5);
+/* Two columns once the tools fit beside the copy. */
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--space-16) clamp(2.5rem, 5vw, 5rem);
   }
 }

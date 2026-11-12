@@ -125,9 +125,14 @@ export async function download(page, locator) {
   return { name: event.suggestedFilename(), bytes: await readFile(path) };
 }
 
+/** Starts over. A result that was never downloaded asks first, and this confirms it. */
 export async function startOver(page) {
   await page.getByRole('button', { name: 'Start over' }).click();
-  await expect(page.getByTestId('results')).toHaveCount(0);
+  const results = page.getByTestId('results');
+  const confirm = page.getByRole('alertdialog').getByRole('button', { name: 'Start over' });
+  await expect.poll(async () => (await results.count()) === 0 || (await confirm.isVisible())).toBe(true);
+  if (await confirm.isVisible()) await confirm.click();
+  await expect(results).toHaveCount(0);
 }
 
 /** Opens the optional print check if it is folded away. */

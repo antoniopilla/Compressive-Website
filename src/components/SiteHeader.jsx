@@ -9,8 +9,8 @@ const THEME_OPTIONS = [
 ];
 
 /**
- * Brand, the main section navigation (desktop and tablet) and the theme
- * toggle. On phones the navigation moves to the bottom bar (BottomNav).
+ * The name, the main section navigation (desktop and tablet) and the theme
+ * switch. On phones the navigation moves to the bottom bar (BottomNav).
  *
  * @param {{ theme: string, onThemeChange: (theme: string) => void, activeSection: string }} props
  */
@@ -19,11 +19,7 @@ export default function SiteHeader({ theme, onThemeChange, activeSection }) {
     <header className={styles.header}>
       <div className={styles.inner}>
         <a className={styles.brand} href="#tools" aria-label="Compressive, go to the top">
-          {/* The tile itself is drawn in CSS, so it takes the clay shading. */}
-          <svg className={styles.mark} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-            <path className={styles.markArrows} d="M8 8l6 6M14 9v5H9M24 24l-6-6M18 23v-5h5" />
-          </svg>
-          <span className={styles.name}>Compressive</span>
+          Compressive
         </a>
 
         <nav className={styles.nav} aria-label="Main">

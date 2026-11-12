@@ -1,4 +1,16 @@
-import { Ban, CircleAlert, FileArchive, FileImage, FileText, Layers, LoaderCircle, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  Ban,
+  CircleAlert,
+  FileArchive,
+  FileImage,
+  FileText,
+  Info,
+  Layers,
+  LoaderCircle,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { formatBytes } from '../engine/index.js';
 import { primaryActionLabel, ROUTE_LABELS } from '../ui/labels.js';
 import styles from './PreparePanel.module.css';
@@ -23,10 +35,11 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
   const ready = plan && plan.route !== 'idle' && plan.route !== 'invalid';
   const RouteIcon = (plan && ROUTE_ICONS[plan.route]) || Sparkles;
   const percent = progress ? Math.round(progress.fraction * 100) : 0;
+  const checking = selection.length > 0 && (status === 'validating' || !plan);
 
   let disabledReason = null;
   if (!selection.length) disabledReason = 'Choose at least one file first.';
-  else if (status === 'validating' || !plan) disabledReason = 'Checking your files…';
+  else if (checking) disabledReason = 'Checking your files…';
   else if (plan.route === 'invalid') disabledReason = 'Fix the issues above first.';
 
   const filesById = new Map(selection.map((entry) => [entry.id, entry]));
@@ -35,7 +48,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
     <div className={styles.panel}>
       {plan && plan.route !== 'idle' ? (
         <div className={styles.plan} data-route={plan.route}>
-          <span className={styles.planIcon} aria-hidden="true">
+          <span className="icon-tile" data-tone={plan.route === 'invalid' ? 'error' : undefined} aria-hidden="true">
             {plan.route === 'invalid' ? <CircleAlert size={20} /> : <RouteIcon size={20} />}
           </span>
           <div className={styles.planText}>
@@ -69,7 +82,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
         <div className={styles.progressBlock}>
           <div className={styles.progressHeader}>
             <span className={styles.progressLabel}>
-              <LoaderCircle size={16} className="spin" aria-hidden="true" />
+              <LoaderCircle size={18} className="spin" aria-hidden="true" />
               {progress.label}…
             </span>
             <span className={styles.progressPercent}>{percent}%</span>
@@ -86,7 +99,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
             <div className={styles.bar} style={{ width: `${Math.max(3, percent)}%` }} />
           </div>
           <button type="button" className="btn btn-danger" onClick={onCancel}>
-            <Ban size={17} aria-hidden="true" /> Cancel
+            <Ban size={18} aria-hidden="true" /> Cancel
           </button>
         </div>
       ) : (
@@ -112,6 +125,7 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
           </button>
           {disabledReason ? (
             <p id="prepare-hint" className={styles.hint}>
+              {checking ? <LoaderCircle size={16} className="spin" aria-hidden="true" /> : null}
               {disabledReason}
             </p>
           ) : null}
@@ -119,18 +133,22 @@ export default function PreparePanel({ snapshot, onPrepare, onCancel, onRetry })
       )}
 
       {snapshot.capabilities.workers ? null : (
-        <p className={styles.notice} role="note">
-          This browser cannot run background processing, so only smaller files can be handled here. For large files, use a
-          recent version of Chrome, Edge, Firefox or Safari.
+        <p className="callout" data-tone="info" role="note">
+          <Info size={18} aria-hidden="true" />
+          <span>
+            This browser cannot run background processing, so only smaller files can be handled here. For large files, use
+            a recent version of Chrome, Edge, Firefox or Safari.
+          </span>
         </p>
       )}
       {status === 'canceled' ? (
-        <p className={styles.notice} role="note">
-          Canceled. Nothing was changed or downloaded. You can try again or pick other files.
+        <p className="callout" role="note">
+          <Ban size={18} aria-hidden="true" />
+          <span>Canceled. Nothing was changed or downloaded. You can try again or pick other files.</span>
         </p>
       ) : null}
       {status === 'failed' && error ? (
-        <p className={styles.failure}>
+        <p className="callout" data-tone="error">
           <CircleAlert size={18} aria-hidden="true" />
           <span>{error.message}</span>
         </p>

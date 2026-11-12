@@ -29,9 +29,9 @@ import {
 
 const SCREENS = 'test-results/screens';
 
-/** Page backgrounds (the ground colour) from the design tokens in src/styles/global.css. */
-const LIGHT_BACKGROUND = 'rgb(241, 242, 250)';
-const DARK_BACKGROUND = 'rgb(29, 26, 34)';
+/** Page backgrounds (--color-bg) from the design tokens in src/styles/global.css. */
+const LIGHT_BACKGROUND = 'rgb(245, 245, 247)';
+const DARK_BACKGROUND = 'rgb(44, 44, 46)';
 
 /** Network requests and console errors seen during the current test. */
 let requests = [];
@@ -102,8 +102,8 @@ test('ships the licences of the open-source software it includes', async ({ requ
   for (const heading of ['MozJPEG (based on libjpeg-turbo), compiled into @jsquash/jpeg', 'libwebp, compiled into @jsquash/webp', 'OxiPNG, compiled into @jsquash/oxipng']) {
     expect(text).toContain(heading);
   }
-  // The bundled Instrument Sans font's OFL licence must travel with the font files.
-  for (const name of ['react', 'jszip', 'pdf-lib', 'browser-image-compression', '@jsquash/jpeg', 'wasm-feature-detect', '@fontsource-variable/instrument-sans']) {
+  // The bundled Inter font's OFL licence must travel with the font files.
+  for (const name of ['react', 'jszip', 'pdf-lib', 'browser-image-compression', '@jsquash/jpeg', 'wasm-feature-detect', '@fontsource-variable/inter']) {
     expect(text).toMatch(new RegExp(`^- ${name.replace('/', '\\/')} \\d`, 'm'));
   }
 });
@@ -587,6 +587,49 @@ test('print size fields explain mistakes inline and confirm a valid size', async
   await height.fill('2');
   await expect(width).not.toHaveAttribute('aria-invalid');
   await expect(page.getByRole('status').filter({ hasText: 'Checking sharpness' })).toHaveText(/^Checking sharpness for 6 × 2 \w+\.$/);
+});
+
+test('asks before clearing files or dropping a result that was never downloaded', async ({ page }) => {
+  const photo = { name: 'photo.jpg', mimeType: 'image/jpeg', buffer: await makeImage(page, { width: 400, height: 300 }) };
+  await chooseFiles(page, [photo]);
+
+  // Clear all explains what goes and starts on the safe choice; Escape keeps the files and
+  // returns focus to the button. Opened from the keyboard, because Safari does not focus a
+  // clicked button, so only a keyboard user has a focus to return to there.
+  const clearAll = page.getByRole('button', { name: 'Clear all' });
+  await clearAll.focus();
+  await page.keyboard.press('Enter');
+  const clearDialog = page.getByRole('alertdialog', { name: 'Clear all files?' });
+  await expect(clearDialog).toBeVisible();
+  await expect(clearDialog).toHaveAccessibleDescription(
+    'The file you added will be removed from this page. The files on your device are not changed.',
+  );
+  await expect(clearDialog.getByRole('button', { name: 'Keep files' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(clearDialog).toBeHidden();
+  await expect(page.getByText('photo.jpg')).toBeVisible();
+  await expect(clearAll).toBeFocused();
+
+  // Starting over asks while the result has not been downloaded, and not once it has.
+  await prepare(page);
+  await page.getByRole('button', { name: 'Start over' }).click();
+  const resetDialog = page.getByRole('alertdialog', { name: 'Start over without downloading?' });
+  await expect(resetDialog).toBeVisible();
+  await resetDialog.getByRole('button', { name: 'Keep result' }).click();
+  await expect(resetDialog).toBeHidden();
+  await expect(page.getByTestId('results')).toBeVisible();
+  await download(page, page.getByTestId('download-primary'));
+  await page.getByRole('button', { name: 'Start over' }).click();
+  await expect(page.getByTestId('results')).toHaveCount(0);
+  await expect(resetDialog).toBeHidden();
+
+  // Confirming Clear all removes the files and returns focus to the file button.
+  await chooseFiles(page, [photo]);
+  await clearAll.click();
+  await clearDialog.getByRole('button', { name: 'Clear all' }).click();
+  await expect(clearDialog).toBeHidden();
+  await expect(page.getByText('photo.jpg')).toHaveCount(0);
+  await expect(page.locator('#choose-files-button')).toBeFocused();
 });
 
 for (const colorScheme of ['light', 'dark']) {

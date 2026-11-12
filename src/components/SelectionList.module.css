@@ -4,73 +4,72 @@
 
 .list {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   list-style: none;
 }
 
-/* Each chosen file is a small cream cushion; its well's colour follows the file type. */
+/* Each chosen file is a row with a hairline edge; a file that needs attention turns red. */
 .row {
-  --tile: var(--dp-color-surface-cool);
-  --tile-ink: var(--color-text);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--space-3);
   padding: var(--space-3);
-  border-radius: var(--dp-radius-disclosure);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-control);
-}
-
-.row[data-category='vector'] {
-  --tile: var(--dp-color-surface-support);
-}
-
-.row[data-category='pdf'],
-.row[data-category='psd'] {
-  --tile: var(--dp-color-surface-compare);
 }
 
 .row[data-invalid] {
-  --tile: var(--color-surface);
-  --tile-ink: var(--color-error);
+  border-color: var(--color-error);
   background: var(--color-error-soft);
-  box-shadow:
-    inset 0 0 0 2px var(--color-error),
-    var(--shadow-control);
 }
 
-.icon {
-  display: inline-grid;
-  place-items: center;
-  width: var(--icon-tile);
-  height: var(--icon-tile);
-  border-radius: 50%;
-  background: var(--tile);
-  box-shadow: var(--shadow-control);
-  color: var(--tile-ink);
+/* On the red row, the tile keeps a light face so its icon still stands out. */
+.row[data-invalid] .icon {
+  background: var(--color-surface);
 }
 
 .main {
   min-width: 0;
-  padding-top: var(--space-1);
+  padding-top: 2px;
 }
 
 .name {
   font-weight: var(--weight-semibold);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-snug);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
+/*
+ * Facts separated by dots, drawn in CSS so screen readers do not read them out.
+ * Every fact carries a dot in front, and the row starts one dot-width further
+ * left with that strip clipped off, so a wrapped line never begins with a dot.
+ */
 .meta {
+  --dot-space: calc(3px + 2 * var(--space-2));
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-  margin-top: var(--space-1);
+  align-items: center;
+  margin-top: 2px;
+  margin-left: calc(-1 * var(--dot-space));
+  clip-path: inset(0 0 0 var(--dot-space));
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
+}
+
+.meta > span::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 var(--space-2);
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+  opacity: 0.6;
 }
 
 .status {
@@ -100,6 +99,7 @@
 
 .error {
   color: var(--color-error);
+  font-weight: var(--weight-medium);
 }
 
 .error svg {
@@ -113,7 +113,8 @@
 
 .actions {
   display: flex;
-  gap: var(--space-1);
+  gap: 2px;
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) 0 0;
 }
 
 @media (max-width: 440px) {
@@ -123,6 +124,6 @@
 
   .actions {
     grid-column: 2;
-    margin-left: calc(-1 * var(--space-2));
+    margin: 0 0 0 calc(-1 * var(--space-3));
   }
 }

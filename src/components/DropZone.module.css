@@ -1,41 +1,54 @@
-/* A well pressed into the cushion; dragging files over it fills it with pink. */
+/* An inset area with a dashed edge; dragging files over it turns it blue. */
 .zone {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-8) var(--space-5);
-  border: 2px dashed var(--color-border-strong);
-  border-radius: var(--dp-radius-surface);
-  box-shadow: var(--shadow-well);
+  padding: var(--space-10) var(--space-6);
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-inset);
   text-align: center;
   transition:
-    border-color var(--dp-motion-interaction) var(--ease-out),
-    background-color var(--dp-motion-interaction) var(--ease-out);
+    border-color var(--duration) var(--ease-standard),
+    background-color var(--duration) var(--ease-standard);
 }
 
 .zone[data-active] {
-  border-color: var(--color-text);
   border-style: solid;
-  background: var(--dp-color-accent);
-}
-
-.zone[data-active] .icon {
-  transform: translateY(var(--hover-lift)) scale(1.08);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
 .zone[data-compact] {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--dp-radius-disclosure);
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   text-align: left;
 }
 
 .icon {
   flex: none;
-  transition: transform var(--dp-motion-interaction) var(--ease-out);
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  color: var(--color-accent);
+  transition: transform var(--duration) var(--ease-out);
+}
+
+.zone[data-compact] .icon {
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+}
+
+.zone[data-active] .icon {
+  transform: translateY(var(--hover-lift));
 }
 
 .text {
@@ -50,10 +63,20 @@
 
 .title {
   font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+}
+
+.zone[data-compact] .title {
+  font-size: var(--text-md);
 }
 
 .hint {
+  max-width: 44ch;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+}
+
+.zone:not([data-compact]) .button {
+  margin-top: var(--space-2);
 }

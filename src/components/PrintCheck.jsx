@@ -1,4 +1,4 @@
-import { Minus, Plus, Printer } from 'lucide-react';
+import { ChevronDown, Printer } from 'lucide-react';
 import PrintSizeForm from './PrintSizeForm.jsx';
 import styles from './PrintCheck.module.css';
 
@@ -17,15 +17,15 @@ import styles from './PrintCheck.module.css';
  */
 export default function PrintCheck({ open, onToggle, printSize, errors, onChange, onUnitPreference }) {
   return (
-    <div className={styles.printCheck}>
+    <div className={styles.printCheck} data-open={open || undefined}>
       <button type="button" className={styles.toggle} aria-expanded={open} aria-controls="print-check-body" onClick={onToggle}>
-        <Printer size={18} aria-hidden="true" className={styles.icon} />
+        <span className="icon-tile" data-tone="neutral" aria-hidden="true">
+          <Printer size={20} />
+        </span>
         <span className={styles.label}>
           Printing it? <span className={styles.labelHint}>Check that it will look sharp</span>
         </span>
-        <span className={styles.sign} aria-hidden="true">
-          {open ? <Minus size={16} /> : <Plus size={16} />}
-        </span>
+        <ChevronDown size={20} aria-hidden="true" className={styles.chevron} />
       </button>
       {open ? (
         <div id="print-check-body" className={styles.body}>

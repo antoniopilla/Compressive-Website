@@ -28,6 +28,14 @@ import styles from './ResultsPanel.module.css';
 /** Notes that only matter when the visitor has asked about printing. */
 const PRINT_ONLY_LIMITATIONS = new Set(['vector-not-assessed', 'psd-header-only', 'pdf-not-assessed', 'pdf-embedded-images', 'zip-unassessed']);
 
+/** Each file outcome maps onto one of the shared badge tones; the label always says it in words. */
+const OUTCOME_TONES = {
+  optimized: 'success',
+  'preserved-exact': 'info',
+  bundled: 'info',
+  'kept-original': 'neutral',
+};
+
 export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrintCheck }) {
   const replaceInputRef = useRef(null);
   const replaceTargetRef = useRef(null);
@@ -75,7 +83,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
     <div className={styles.results} data-testid="results">
       <div className={styles.summary}>
         <p className={styles.headline}>
-          <CircleCheck size={22} aria-hidden="true" className={styles.headlineIcon} />
+          <CircleCheck size={24} aria-hidden="true" className={styles.headlineIcon} />
           {resultHeadline(result)}
         </p>
         <dl className={styles.stats}>
@@ -87,7 +95,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
             <dt>After</dt>
             <dd>{formatBytes(totals.preparedBytes)}</dd>
           </div>
-          <div className={styles.stat}>
+          <div className={styles.stat} data-highlight={saved > 0 || undefined}>
             <dt>{savedLabel}</dt>
             <dd>{savedValue}</dd>
           </div>
@@ -115,8 +123,8 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
       {result.warnings.length ? (
         <ul className={styles.notices}>
           {result.warnings.map((warning) => (
-            <li key={warning.code} className={styles.notice} data-severity={warning.severity ?? 'info'}>
-              {warning.severity === 'warning' ? <TriangleAlert size={17} aria-hidden="true" /> : <Info size={17} aria-hidden="true" />}
+            <li key={warning.code} className="callout" data-tone={warning.severity === 'warning' ? 'warning' : 'info'}>
+              {warning.severity === 'warning' ? <TriangleAlert size={18} aria-hidden="true" /> : <Info size={18} aria-hidden="true" />}
               <span>{warning.message}</span>
             </li>
           ))}
@@ -126,7 +134,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
       {acknowledgement.required ? (
         <div className={styles.ack} role="group" aria-labelledby="ack-title">
           <p id="ack-title" className={styles.ackTitle}>
-            <TriangleAlert size={19} aria-hidden="true" /> This may not print sharply
+            <TriangleAlert size={20} aria-hidden="true" /> This may not print sharply
           </p>
           <p className={styles.ackText}>
             {warnedFiles.length === 1
@@ -157,36 +165,39 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
         </div>
       ) : null}
 
-      <div className={styles.downloads}>
-        <button
-          type="button"
-          className="btn btn-primary btn-lg"
-          onClick={downloadPrimary}
-          disabled={!canDownload}
-          aria-describedby={!canDownload ? 'download-locked' : 'download-filename'}
-          data-testid="download-primary"
-        >
-          <Download size={19} aria-hidden="true" />
-          {/* One text run, so a long label and its size wrap together on narrow screens. */}
-          <span>
-            {downloadLabel(result)} <span className={styles.size}>({formatBytes(result.artifact.size)})</span>
-          </span>
-        </button>
-        {originalAvailable ? (
-          <button type="button" className="btn btn-secondary" onClick={downloadOriginal} data-testid="download-original">
-            <Download size={17} aria-hidden="true" /> Download original ({formatBytes(primaryFile.originalBytes)})
+      <div className={styles.downloadBlock}>
+        <div className={styles.downloads}>
+          <button
+            type="button"
+            className="btn btn-primary btn-lg"
+            onClick={downloadPrimary}
+            disabled={!canDownload}
+            aria-describedby={!canDownload ? 'download-locked' : 'download-filename'}
+            data-testid="download-primary"
+          >
+            <Download size={20} aria-hidden="true" />
+            {/* One text run, so a long label and its size wrap together on narrow screens. */}
+            <span>
+              {downloadLabel(result)} <span className={styles.size}>({formatBytes(result.artifact.size)})</span>
+            </span>
           </button>
-        ) : null}
+          {originalAvailable ? (
+            <button type="button" className="btn btn-secondary btn-lg" onClick={downloadOriginal} data-testid="download-original">
+              <Download size={18} aria-hidden="true" /> Download original ({formatBytes(primaryFile.originalBytes)})
+            </button>
+          ) : null}
+        </div>
+        {!canDownload ? (
+          <p id="download-locked" className={styles.lockHint}>
+            <CircleAlert size={16} aria-hidden="true" />
+            <span>Tick the confirmation above to enable the download.</span>
+          </p>
+        ) : (
+          <p id="download-filename" className={styles.filename}>
+            Saves as <span className={styles.code}>{result.artifact.filename}</span>
+          </p>
+        )}
       </div>
-      {!canDownload ? (
-        <p id="download-locked" className={styles.lockHint}>
-          Tick the confirmation above to enable the download.
-        </p>
-      ) : (
-        <p id="download-filename" className={styles.filename}>
-          Saves as <span className={styles.code}>{result.artifact.filename}</span>
-        </p>
-      )}
 
       <h3 className={styles.sectionTitle}>File details</h3>
       <ul className={styles.files}>
@@ -206,7 +217,7 @@ export default function ResultsPanel({ snapshot, actions, onDownload, onOpenPrin
         <p className={styles.printOffer}>
           <Printer size={18} aria-hidden="true" />
           <span>Printing this?</span>
-          <button type="button" className="btn btn-ghost" onClick={onOpenPrintCheck}>
+          <button type="button" className="btn btn-link" onClick={onOpenPrintCheck}>
             Check if it will look sharp
           </button>
         </p>
@@ -257,11 +268,11 @@ function FileResult({ file, route, fileHealth, details, printChecked }) {
   return (
     <li className={styles.file} data-outcome={file.outcome}>
       <div className={styles.fileHeader}>
-        <span className={styles.fileIcon}>
-          <FileIcon category={file.category} size={18} />
+        <span className="icon-tile" data-tone="neutral" aria-hidden="true">
+          <FileIcon category={file.category} />
         </span>
         <p className={styles.fileName}>{file.name}</p>
-        <span className={styles.outcome} data-outcome={file.outcome}>
+        <span className={`badge ${styles.outcome}`} data-tone={OUTCOME_TONES[file.outcome] ?? 'neutral'} data-outcome={file.outcome}>
           {outcomeLabel(file.outcome, route)}
         </span>
       </div>

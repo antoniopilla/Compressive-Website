@@ -1,4 +1,16 @@
-import { FileArchive, FileImage, FileText, FolderOpen, Image, Images, Printer, ShieldCheck, Undo2, Zap } from 'lucide-react';
+import {
+  ChevronRight,
+  FileArchive,
+  FileImage,
+  FileText,
+  FolderOpen,
+  Image,
+  Images,
+  Printer,
+  ShieldCheck,
+  Undo2,
+  Zap,
+} from 'lucide-react';
 import { TOOLS } from '../ui/tools.js';
 import styles from './Hero.module.css';
 
@@ -23,74 +35,65 @@ const PROMISES = [
 ];
 
 /**
- * Home section: a pink cushion with what Compressive is and the primary
- * action (Choose files) on the left, and one button per tool beside a
- * decorative clay sculpture on the right. Every tool button opens the
- * matching file picker. The three promises sit beneath in pastel cushions.
+ * Home section: what Compressive is and the primary action (Choose files) on
+ * the left, one card per tool on the right, and the three promises beneath.
+ * Every tool card opens the matching file picker.
  *
  * @param {{ onTool: (toolId: string) => void, onChooseFiles: () => void }} props
  */
 export default function Hero({ onTool, onChooseFiles }) {
   return (
     <section id="tools" className={styles.hero} aria-labelledby="hero-title">
-      <div className={styles.cushion}>
-        <div className={styles.intro}>
-          <p className={styles.kicker}>Free, private and no sign-up</p>
-          <h1 id="hero-title" className={styles.title}>
-            Make your files smaller, right here in your browser
-          </h1>
-          <p className={styles.lead}>
-            Compress PNG, JPG and WebP images, shrink PDFs or zip a batch of files. Pick a tool to start, or drop files
-            below.
-          </p>
-          <div className={styles.actions}>
-            <button type="button" className="btn btn-primary btn-lg" onClick={onChooseFiles}>
-              <FolderOpen size={20} aria-hidden="true" /> Choose files
-            </button>
-            <a className={styles.secondaryLink} href="#how-it-works">
-              How it works
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.toolsBlock}>
-          <h2 className={styles.toolsTitle} id="tools-title">
-            Tools
-          </h2>
-          <ul className={styles.tools} aria-labelledby="tools-title">
-            {TOOLS.map((tool) => {
-              const Icon = TOOL_ICONS[tool.id] ?? FileImage;
-              return (
-                <li key={tool.id}>
-                  <button type="button" className={styles.tool} onClick={() => onTool(tool.id)}>
-                    <span className={styles.toolIcon} aria-hidden="true">
-                      <Icon size={20} />
-                    </span>
-                    <span className={styles.toolText}>
-                      <span className={styles.toolLabel}>{tool.label}</span>
-                      <span className={styles.toolHint}>{tool.hint}</span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Molded shapes, purely decorative and static. */}
-        <div className={styles.sculpture} aria-hidden="true">
-          <span className={styles.sphere} />
-          <span className={styles.ring} />
-          <span className={styles.block} />
-          <span className={styles.capsule} />
-          <span className={styles.pebble} />
+      <div className={styles.intro}>
+        <p className={styles.kicker}>
+          <ShieldCheck size={16} aria-hidden="true" /> Free, private and no sign-up
+        </p>
+        <h1 id="hero-title" className={styles.title}>
+          Make your files smaller, right here in your browser
+        </h1>
+        <p className={styles.lead}>
+          Compress PNG, JPG and WebP images, shrink PDFs or zip a batch of files. Pick a tool to start, or drop files
+          below.
+        </p>
+        <div className={styles.actions}>
+          <button type="button" className="btn btn-primary btn-lg" onClick={onChooseFiles}>
+            <FolderOpen size={20} aria-hidden="true" /> Choose files
+          </button>
+          <a className={`btn btn-link btn-lg ${styles.secondaryLink}`} href="#how-it-works">
+            How it works <ChevronRight size={18} aria-hidden="true" />
+          </a>
         </div>
       </div>
 
-      <ul className={styles.promises} aria-label="Why Compressive">
+      <div className={styles.toolsBlock}>
+        <h2 className={styles.toolsTitle} id="tools-title">
+          Tools
+        </h2>
+        <ul className={styles.tools} aria-labelledby="tools-title">
+          {TOOLS.map((tool) => {
+            const Icon = TOOL_ICONS[tool.id] ?? FileImage;
+            return (
+              <li key={tool.id}>
+                <button type="button" className={styles.tool} onClick={() => onTool(tool.id)}>
+                  <span className="icon-tile" aria-hidden="true">
+                    <Icon size={20} />
+                  </span>
+                  <span className={styles.toolText}>
+                    <span className={styles.toolLabel}>{tool.label}</span>
+                    <span className={styles.toolHint}>{tool.hint}</span>
+                  </span>
+                  <ChevronRight className={styles.toolChevron} size={16} aria-hidden="true" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <ul className={`card ${styles.promises}`} aria-label="Why Compressive">
         {PROMISES.map(({ title, text, Icon }) => (
           <li key={title} className={styles.promise}>
-            <span className={styles.promiseIcon} aria-hidden="true">
+            <span className="icon-tile" aria-hidden="true">
               <Icon size={20} />
             </span>
             <div>

@@ -1,40 +1,36 @@
 /*
- * Compressive design system: claymorphism.
+ * Compressive design system: clean and minimal.
  *
- * Soft, inflated forms lit from the upper left. Dark plum-grey ink sits on a
- * pink lead cushion, cream reading trays and pastel mint, lavender,
- * butter-yellow and pale-blue objects. Every raised form combines a broad
- * outer shadow with a light inset along its upper-left edge and a darker inset
- * along its lower-right edge; recessed wells reverse the insets. Text never
- * carries a shadow.
+ * A light grey page, white cards with hairline borders and soft shadows, and
+ * one blue for actions and accents. Dark mode keeps the same roles on
+ * charcoal surfaces. Components use the role tokens below, never hard-coded
+ * values, and share the component classes at the end of this file (buttons,
+ * cards, icon tiles, badges, callouts and fields).
  *
- * The --dp-* values are the design system's own tokens. The role tokens below
- * them build on those values, and components use these variables instead of
- * hard-coded values.
- *
- * Ink and ink-secondary meet WCAG AA (4.5:1) on every surface in both themes.
- * Status colours (success, warning, error, info) are for icons and short
- * labels; their soft shades reuse the pastel surfaces.
+ * Text and secondary text meet WCAG AA (4.5:1) on every surface in both
+ * themes, white meets it on both button blues, and field borders and the
+ * focus ring meet 3:1. Status colours always come with an icon and a text
+ * label, never on their own.
  */
 
-/* Instrument Sans, bundled with the site: the CSP only allows fonts from this origin. */
+/* Inter, bundled with the site: the CSP only allows fonts from this origin. */
 @font-face {
-  font-family: 'Claymorphism Instrument';
+  font-family: 'Inter Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 400 700;
-  src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-ext-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2') format('woff2');
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
     U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: 'Claymorphism Instrument';
+  font-family: 'Inter Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 400 700;
-  src: url('@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
     U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -43,133 +39,80 @@
 :root {
   color-scheme: light;
 
-  /* Design-system tokens */
-  --dp-color-ground: #f1f2fa;
-  --dp-color-ink: #383139;
-  --dp-color-ink-secondary: #48404b;
-  --dp-color-accent: #f6a3ca;
-  --dp-color-surface-support: #c0efdc;
-  --dp-color-surface-compare: #ded0f9;
-  --dp-color-surface-warm: #f9e7a8;
-  --dp-color-surface-cool: #c5e5fb;
-  --dp-color-surface: #fffdf7;
-  --dp-typography-face: 'Claymorphism Instrument', sans-serif;
-  --dp-typography-body: 16px;
-  --dp-typography-small: 15px;
-  --dp-typography-metadata: 13px;
-  --dp-typography-caption: 12px;
-  --dp-typography-reading-leading: 1.55;
-  --dp-typography-emphasis: 700;
-  --dp-spacing-gap: 24px;
-  --dp-spacing-gap-compact: 20px;
-  --dp-spacing-paragraph-gap: 18px;
-  --dp-radius-surface: 38px;
-  --dp-radius-tray: 70px;
-  --dp-radius-control: 999px;
-  --dp-radius-disclosure: 25px;
-  --dp-border-focus-width: 3px;
-  --dp-motion-interaction: 180ms;
+  /* Surfaces */
+  --color-bg: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-surface-2: #ebebed;
+  --color-surface-2-hover: #e0e0e3;
+  --color-surface-inset: #f5f5f7;
+  --color-thumb: #ffffff;
+  --color-bar: rgb(245 245 247 / 0.82);
+  --color-backdrop: rgb(0 0 0 / 0.4);
 
-  /* Colours: roles */
-  --color-bg: var(--dp-color-ground);
-  --color-surface: var(--dp-color-surface);
-  --color-surface-2: #f6f0e5;
-  --color-surface-3: #e9e0d2;
-  --color-border: rgb(56 49 57 / 0.14);
-  --color-border-strong: rgb(56 49 57 / 0.34);
-  --color-hover: rgb(56 49 57 / 0.07);
-  --color-text: var(--dp-color-ink);
-  --color-text-muted: var(--dp-color-ink-secondary);
+  /* Lines */
+  --color-border: rgb(0 0 0 / 0.08);
+  --color-border-strong: rgb(0 0 0 / 0.2);
+  --color-field-border: #86868b;
+  --color-hover: rgb(0 0 0 / 0.05);
+  --color-pressed: rgb(0 0 0 / 0.08);
 
-  --color-primary: var(--dp-color-ink);
-  --color-primary-hover: #4d434f;
-  --color-on-primary: var(--dp-color-surface);
+  /* Text */
+  --color-text: #1d1d1f;
+  --color-text-muted: #626268;
+  --color-text-subtle: #8e8e93;
 
-  --color-success: #14703f;
-  --color-success-soft: var(--dp-color-surface-support);
-  --color-warning: #8f5400;
-  --color-warning-soft: var(--dp-color-surface-warm);
-  --color-error: #b4322a;
-  --color-error-soft: #fce4e1;
-  --color-info: #0a5c9e;
-  --color-info-soft: var(--dp-color-surface-cool);
+  /* Blue: actions, links, accents and focus */
+  --color-accent: #0066cc;
+  --color-accent-soft: #e8f1fb;
+  --color-on-accent: #ffffff;
+  --color-button: #0066cc;
+  --color-button-hover: #0058b0;
+  --color-button-pressed: #004f9e;
+  --color-focus: #0066cc;
 
-  --color-focus: var(--dp-color-ink);
+  /* Status: for icons, short labels and messages, always with text */
+  --color-success: #1a7f37;
+  --color-success-soft: #e7f5eb;
+  --color-warning: #a15c00;
+  --color-warning-soft: #fff3e0;
+  --color-error: #d70015;
+  --color-error-soft: #fdecec;
+  --color-error-soft-hover: #fbdcdc;
+  --color-info: var(--color-accent);
+  --color-info-soft: var(--color-accent-soft);
+  --color-danger: #d70015;
+  --color-danger-hover: #b80012;
 
-  /* Clay shading: light falls from the upper left. */
-  --clay-light: rgb(255 255 255 / 0.75);
-  --clay-shade: rgb(84 60 98 / 0.16);
-  --clay-drop: rgb(84 60 98 / 0.22);
-  --clay-shade-accent: rgb(188 68 128 / 0.3);
-  --clay-light-ink: rgb(255 255 255 / 0.26);
-  --clay-shade-ink: rgb(0 0 0 / 0.38);
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.03), 0 4px 16px rgb(0 0 0 / 0.04);
+  --shadow-raised: 0 2px 6px rgb(0 0 0 / 0.04), 0 12px 32px rgb(0 0 0 / 0.08);
+  --shadow-thumb: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 1px rgb(0 0 0 / 0.04);
+  --shadow-dialog: 0 24px 72px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.06);
 
-  --shadow-tray:
-    20px 30px 60px -30px var(--clay-drop),
-    inset 10px 12px 22px var(--clay-light),
-    inset -14px -16px 30px var(--clay-shade);
-  --shadow-tray-accent:
-    20px 30px 60px -30px var(--clay-drop),
-    inset 10px 12px 22px var(--clay-light),
-    inset -14px -16px 30px var(--clay-shade-accent);
-  --shadow-surface:
-    10px 16px 32px -18px var(--clay-drop),
-    inset 6px 7px 13px var(--clay-light),
-    inset -7px -9px 16px var(--clay-shade);
-  --shadow-control:
-    4px 8px 16px -8px var(--clay-drop),
-    inset 3px 3px 6px var(--clay-light),
-    inset -3px -4px 8px var(--clay-shade);
-  --shadow-raised:
-    6px 13px 22px -8px var(--clay-drop),
-    inset 3px 3px 6px var(--clay-light),
-    inset -3px -4px 8px var(--clay-shade);
-  --shadow-pressed:
-    inset 4px 5px 9px var(--clay-shade),
-    inset -2px -2px 5px var(--clay-light);
-  --shadow-well:
-    inset 3px 4px 8px var(--clay-shade),
-    inset -3px -3px 6px var(--clay-light);
-  --shadow-ink:
-    4px 8px 16px -8px var(--clay-drop),
-    inset 3px 3px 6px var(--clay-light-ink),
-    inset -3px -4px 8px var(--clay-shade-ink);
-  --shadow-ink-raised:
-    6px 13px 22px -8px var(--clay-drop),
-    inset 3px 3px 6px var(--clay-light-ink),
-    inset -3px -4px 8px var(--clay-shade-ink);
-  --shadow-ink-pressed:
-    inset 4px 5px 9px var(--clay-shade-ink),
-    inset -2px -2px 5px var(--clay-light-ink);
-
-  /* The hero sculpture: the pastels themselves; dark mode lifts them off the deep cushion. */
-  --sculpture-mint: var(--dp-color-surface-support);
-  --sculpture-lavender: var(--dp-color-surface-compare);
-  --sculpture-yellow: var(--dp-color-surface-warm);
-  --sculpture-blue: var(--dp-color-surface-cool);
-  --sculpture-cream: var(--dp-color-surface);
-  --sculpture-light: var(--clay-light);
-
-  /* Typography */
-  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  --text-xs: var(--dp-typography-metadata);
-  --text-sm: var(--dp-typography-small);
-  --text-md: var(--dp-typography-body);
-  --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
-  --text-2xl: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
-  /* 54px at 760px wide, growing to 94px; phones step down to 40px. */
-  --text-display: clamp(2.5rem, 1.1rem + 4.76vw, 5.875rem);
-  --leading-display: 0.98;
-  --leading-tight: 1.15;
-  --leading-normal: var(--dp-typography-reading-leading);
-  --tracking-display: -0.035em;
-  --tracking-heading: -0.02em;
+  /* Typography: heading, title, body, label and helper styles */
+  --font-sans: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 0.8125rem; /* 13px: badges, captions */
+  --text-sm: 0.875rem; /* 14px: labels, helper text */
+  --text-md: 1rem; /* 16px: body */
+  --text-lg: 1.125rem; /* 18px: lead text, small titles */
+  --text-xl: 1.25rem; /* 20px: card titles */
+  --text-2xl: clamp(1.625rem, 1.2rem + 1.5vw, 2.25rem); /* 26–36px: section titles */
+  --text-display: clamp(2rem, 1.25rem + 3.2vw, 3.75rem); /* 32–60px: the page title */
+  --leading-display: 1.06;
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --tracking-display: -0.032em;
+  --tracking-heading: -0.022em;
+  --tracking-title: -0.012em;
+  --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
-  --weight-bold: var(--dp-typography-emphasis);
+  --weight-bold: 700;
 
-  /* Spacing (4px base) */
+  /* Spacing: a 4px base, mostly in 8px steps */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -180,113 +123,118 @@
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
-  --section-gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
-  --tray-padding: clamp(1rem, 4.5vw, 3.5rem);
+  --space-20: 80px;
+  --space-24: 96px;
+  --section-gap: clamp(3.5rem, 2rem + 4vw, 6rem);
+  --card-padding: clamp(1rem, 0.6rem + 1.6vw, 1.5rem);
 
   /* Shape and size */
-  --radius-sm: 14px;
-  --radius-tray: clamp(var(--dp-radius-surface), 7vw, var(--dp-radius-tray));
-  --border-width: 1px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-input: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
   --control-height: 44px;
-  --button-height: 48px;
-  --control-height-lg: 56px;
-  --icon-tile: 44px;
-  --content-max: 1240px;
-  --header-height: 92px;
-  --bottom-nav-height: 72px;
+  --control-height-lg: 52px;
+  --icon-tile: 40px;
+  --content-max: 1200px;
+  --header-height: 64px;
+  --bottom-nav-height: 64px;
   --gutter: 16px;
 
-  /* Motion: short hover and press responses only. */
+  /* Motion: short, subtle responses only. */
+  --duration-fast: 120ms;
+  --duration: 200ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --hover-lift: -2px;
-  --press-shift: 1px;
-  --press-scale: 0.97;
+  --press-scale: 0.98;
 }
 
 /*
  * Dark theme: chosen explicitly, or following the device when set to Auto.
- * The design system defines light values only, so the same roles move to
- * deep clay tones here; the shading keeps the same light direction.
+ * The same roles on charcoal: cards sit darker than the page, secondary
+ * surfaces lighter, and blue stays the one accent. Keep both blocks identical.
  */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --dp-color-ground: #1d1a22;
-  --dp-color-ink: #f6eff4;
-  --dp-color-ink-secondary: #d9ced8;
-  --dp-color-accent: #6d3557;
-  --dp-color-surface-support: #1d3d35;
-  --dp-color-surface-compare: #322a4d;
-  --dp-color-surface-warm: #3e3420;
-  --dp-color-surface-cool: #1c3448;
-  --dp-color-surface: #2b2631;
-
-  --color-surface-2: #232028;
-  --color-surface-3: #3a3442;
-  --color-border: rgb(246 239 244 / 0.14);
-  --color-border-strong: rgb(246 239 244 / 0.34);
-  --color-hover: rgb(246 239 244 / 0.08);
-  --color-primary-hover: #ffffff;
-
-  --color-success: #5ad48c;
-  --color-warning: #f7c04a;
-  --color-error: #ff8a80;
-  --color-error-soft: #3d1f22;
-  --color-info: #6cb6ff;
-
-  --clay-light: rgb(255 255 255 / 0.07);
-  --clay-shade: rgb(0 0 0 / 0.3);
-  --clay-drop: rgb(0 0 0 / 0.5);
-  --clay-shade-accent: rgb(24 6 18 / 0.45);
-  --clay-light-ink: rgb(255 255 255 / 0.85);
-  --clay-shade-ink: rgb(84 60 98 / 0.3);
-
-  --sculpture-mint: #6fae96;
-  --sculpture-lavender: #9686c9;
-  --sculpture-yellow: #c4ad62;
-  --sculpture-blue: #6aa3c9;
-  --sculpture-cream: #d6ccc0;
-  --sculpture-light: rgb(255 255 255 / 0.32);
+  --color-bg: #2c2c2e;
+  --color-surface: #1c1c1e;
+  --color-surface-2: #3a3a3c;
+  --color-surface-2-hover: #48484a;
+  --color-surface-inset: #2c2c2e;
+  --color-thumb: #636366;
+  --color-bar: rgb(44 44 46 / 0.82);
+  --color-backdrop: rgb(0 0 0 / 0.6);
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.22);
+  --color-field-border: #6e6e73;
+  --color-hover: rgb(255 255 255 / 0.07);
+  --color-pressed: rgb(255 255 255 / 0.11);
+  --color-text: #f5f5f7;
+  --color-text-muted: #a9a9ae;
+  --color-text-subtle: #7c7c80;
+  --color-accent: #409cff;
+  --color-accent-soft: #183049;
+  --color-button: #0071e3;
+  --color-button-hover: #0066cc;
+  --color-button-pressed: #0058b0;
+  --color-focus: #409cff;
+  --color-success: #30d158;
+  --color-success-soft: #173a22;
+  --color-warning: #ffb340;
+  --color-warning-soft: #3d2e12;
+  --color-error: #ff6961;
+  --color-error-soft: #3d1d1d;
+  --color-error-soft-hover: #4b2323;
+  --color-danger-hover: #b80012;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.24), 0 4px 16px rgb(0 0 0 / 0.16);
+  --shadow-raised: 0 2px 6px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.32);
+  --shadow-thumb: 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-dialog: 0 24px 72px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --dp-color-ground: #1d1a22;
-    --dp-color-ink: #f6eff4;
-    --dp-color-ink-secondary: #d9ced8;
-    --dp-color-accent: #6d3557;
-    --dp-color-surface-support: #1d3d35;
-    --dp-color-surface-compare: #322a4d;
-    --dp-color-surface-warm: #3e3420;
-    --dp-color-surface-cool: #1c3448;
-    --dp-color-surface: #2b2631;
-
-    --color-surface-2: #232028;
-    --color-surface-3: #3a3442;
-    --color-border: rgb(246 239 244 / 0.14);
-    --color-border-strong: rgb(246 239 244 / 0.34);
-    --color-hover: rgb(246 239 244 / 0.08);
-    --color-primary-hover: #ffffff;
-
-    --color-success: #5ad48c;
-    --color-warning: #f7c04a;
-    --color-error: #ff8a80;
-    --color-error-soft: #3d1f22;
-    --color-info: #6cb6ff;
-
-    --clay-light: rgb(255 255 255 / 0.07);
-    --clay-shade: rgb(0 0 0 / 0.3);
-    --clay-drop: rgb(0 0 0 / 0.5);
-    --clay-shade-accent: rgb(24 6 18 / 0.45);
-    --clay-light-ink: rgb(255 255 255 / 0.85);
-    --clay-shade-ink: rgb(84 60 98 / 0.3);
-
-    --sculpture-mint: #6fae96;
-    --sculpture-lavender: #9686c9;
-    --sculpture-yellow: #c4ad62;
-    --sculpture-blue: #6aa3c9;
-    --sculpture-cream: #d6ccc0;
-    --sculpture-light: rgb(255 255 255 / 0.32);
+    --color-bg: #2c2c2e;
+    --color-surface: #1c1c1e;
+    --color-surface-2: #3a3a3c;
+    --color-surface-2-hover: #48484a;
+    --color-surface-inset: #2c2c2e;
+    --color-thumb: #636366;
+    --color-bar: rgb(44 44 46 / 0.82);
+    --color-backdrop: rgb(0 0 0 / 0.6);
+    --color-border: rgb(255 255 255 / 0.1);
+    --color-border-strong: rgb(255 255 255 / 0.22);
+    --color-field-border: #6e6e73;
+    --color-hover: rgb(255 255 255 / 0.07);
+    --color-pressed: rgb(255 255 255 / 0.11);
+    --color-text: #f5f5f7;
+    --color-text-muted: #a9a9ae;
+    --color-text-subtle: #7c7c80;
+    --color-accent: #409cff;
+    --color-accent-soft: #183049;
+    --color-button: #0071e3;
+    --color-button-hover: #0066cc;
+    --color-button-pressed: #0058b0;
+    --color-focus: #409cff;
+    --color-success: #30d158;
+    --color-success-soft: #173a22;
+    --color-warning: #ffb340;
+    --color-warning-soft: #3d2e12;
+    --color-error: #ff6961;
+    --color-error-soft: #3d1d1d;
+    --color-error-soft-hover: #4b2323;
+    --color-danger-hover: #b80012;
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.24), 0 4px 16px rgb(0 0 0 / 0.16);
+    --shadow-raised: 0 2px 6px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.32);
+    --shadow-thumb: 0 1px 3px rgb(0 0 0 / 0.4);
+    --shadow-dialog: 0 24px 72px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.3);
   }
 }
 
@@ -300,7 +248,9 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+  /* Phones: the header scrolls away, and the bottom bar must never hide what gets focus. */
+  scroll-padding-top: var(--space-4);
+  scroll-padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--space-4));
 }
 
 body {
@@ -308,9 +258,11 @@ body {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--dp-typography-face);
+  font-family: var(--font-sans);
   font-size: var(--text-md);
   line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -325,20 +277,29 @@ p {
 h1,
 h2,
 h3 {
-  font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-heading);
 }
 
+h1,
+h2 {
+  font-weight: var(--weight-bold);
+}
+
+h3 {
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+}
+
 a {
-  color: var(--color-primary);
-  text-underline-offset: 4px;
-  text-decoration-thickness: 2px;
-  transition: color var(--dp-motion-interaction) var(--ease-out);
+  color: var(--color-accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color var(--duration) var(--ease-standard);
 }
 
 a:hover {
-  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
 button,
@@ -348,16 +309,20 @@ select {
   color: inherit;
 }
 
-/* Focus is an outline, kept apart from the clay shading so it always shows. */
+/* Focus: one ring everywhere, offset from the control so it reads on every surface. */
 :focus-visible {
-  outline: var(--dp-border-focus-width) solid var(--color-focus);
-  outline-offset: 3px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 ul,
 ol {
   margin: 0;
   padding: 0;
+}
+
+::selection {
+  background: var(--color-accent-soft);
 }
 
 .visually-hidden {
@@ -376,97 +341,111 @@ ol {
   position: absolute;
   left: var(--gutter);
   top: calc(-1 * var(--space-16));
-  z-index: 20;
+  z-index: 30;
   display: inline-flex;
   align-items: center;
-  min-height: var(--button-height);
+  min-height: var(--control-height);
   padding: var(--space-2) var(--space-5);
-  border-radius: var(--dp-radius-control);
-  background: var(--color-primary);
-  box-shadow: var(--shadow-ink);
-  color: var(--color-on-primary);
-  font-weight: var(--weight-bold);
+  border-radius: var(--radius-pill);
+  background: var(--color-button);
+  color: var(--color-on-accent);
+  font-weight: var(--weight-semibold);
+}
+
+/* The shadow only while it shows: parked above the page, it would still cast one onto it. */
+.skip-link:focus {
+  top: var(--space-3);
+  box-shadow: var(--shadow-raised);
+  color: var(--color-on-accent);
   text-decoration: none;
 }
 
-.skip-link:focus {
-  top: var(--space-3);
-  color: var(--color-on-primary);
-}
-
 /*
- * Buttons: thick clay pills. Hover raises them slightly; pressing lowers and
- * compresses them into the surface. Only transform, shadow and colour animate.
+ * Buttons. Primary: the one blue pill per step. Secondary: grey pills for
+ * everything else. Danger: soft red for stopping work; danger-solid confirms
+ * a destructive choice. Ghost: quiet actions that only show a fill on hover.
  */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--button-height);
+  min-height: var(--control-height);
   max-width: 100%;
-  padding: var(--space-3) var(--space-6);
-  border: 0;
-  border-radius: var(--dp-radius-control);
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   font-size: var(--text-md);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    transform var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out),
-    background-color var(--dp-motion-interaction) var(--ease-out),
-    color var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    border-color var(--duration) var(--ease-standard),
+    color var(--duration) var(--ease-standard),
+    box-shadow var(--duration) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn:hover {
+  text-decoration: none;
 }
 
 .btn svg {
   flex: none;
 }
 
-.btn:not(:disabled):hover {
-  transform: translateY(var(--hover-lift));
-}
-
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  cursor: not-allowed;
-  opacity: 0.5;
+.btn:not(:disabled):active {
+  transform: scale(var(--press-scale));
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  box-shadow: var(--shadow-ink);
-  color: var(--color-on-primary);
+  background: var(--color-button);
+  color: var(--color-on-accent);
 }
 
 .btn-primary:not(:disabled):hover {
-  box-shadow: var(--shadow-ink-raised);
-  color: var(--color-on-primary);
+  background: var(--color-button-hover);
+  color: var(--color-on-accent);
 }
 
-.btn-secondary,
-.btn-danger {
-  background: var(--color-surface);
-  box-shadow: var(--shadow-control);
+.btn-primary:not(:disabled):active {
+  background: var(--color-button-pressed);
+}
+
+.btn-secondary {
+  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
-.btn-secondary:not(:disabled):hover,
-.btn-danger:not(:disabled):hover {
-  box-shadow: var(--shadow-raised);
+.btn-secondary:not(:disabled):hover {
+  background: var(--color-surface-2-hover);
+  color: var(--color-text);
 }
 
 .btn-danger {
+  background: var(--color-error-soft);
   color: var(--color-error);
 }
 
 .btn-danger:not(:disabled):hover {
-  background: var(--color-error-soft);
+  background: var(--color-error-soft-hover);
+  color: var(--color-error);
 }
 
-/* Ghost actions stay plain text until hovered. */
+.btn-danger-solid {
+  background: var(--color-danger);
+  color: var(--color-on-accent);
+}
+
+.btn-danger-solid:not(:disabled):hover {
+  background: var(--color-danger-hover);
+  color: var(--color-on-accent);
+}
+
 .btn-ghost {
   padding-inline: var(--space-3);
   background: transparent;
@@ -478,26 +457,238 @@ ol {
   color: var(--color-text);
 }
 
-/* Pressing: after the hover rules, so it wins while the pointer is still over the button. */
-.btn:not(:disabled):active {
-  transform: translateY(var(--press-shift)) scale(var(--press-scale));
-  box-shadow: var(--shadow-pressed);
+.btn-ghost:not(:disabled):active {
+  background: var(--color-pressed);
 }
 
-.btn-primary:not(:disabled):active {
-  box-shadow: var(--shadow-ink-pressed);
+/* Text-style action in the accent colour, for "Learn more"-type links beside content. */
+.btn-link {
+  padding-inline: var(--space-2);
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.btn-link:not(:disabled):hover {
+  background: var(--color-hover);
+  color: var(--color-accent);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  border-color: transparent;
+  background: var(--color-surface-2);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+.btn-ghost:disabled,
+.btn-link:disabled {
+  background: transparent;
 }
 
 .btn-icon {
   min-width: var(--control-height);
-  min-height: var(--control-height);
   padding: var(--space-2);
 }
 
 .btn-lg {
   min-height: var(--control-height-lg);
-  padding: var(--space-3) var(--space-8);
-  font-size: var(--text-lg);
+  padding: var(--space-3) var(--space-6);
+  font-size: 1.0625rem;
+}
+
+/* Cards: white (charcoal in dark mode) with a hairline border and a soft shadow. */
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* Icon tiles: one size and shape for every outline icon that sits in a tile. */
+.icon-tile {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--icon-tile);
+  height: var(--icon-tile);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.icon-tile[data-tone='neutral'] {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.icon-tile[data-tone='success'] {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.icon-tile[data-tone='warning'] {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.icon-tile[data-tone='error'] {
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+/* Badges: a short status label with its icon; the text always carries the meaning. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: var(--space-1) 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge svg {
+  flex: none;
+}
+
+.badge[data-tone='success'] {
+  background: var(--color-success-soft);
+}
+
+.badge[data-tone='success'] svg {
+  color: var(--color-success);
+}
+
+.badge[data-tone='info'] {
+  background: var(--color-info-soft);
+}
+
+.badge[data-tone='info'] svg {
+  color: var(--color-info);
+}
+
+.badge[data-tone='warning'] {
+  background: var(--color-warning-soft);
+}
+
+.badge[data-tone='warning'] svg {
+  color: var(--color-warning);
+}
+
+.badge[data-tone='error'] {
+  background: var(--color-error-soft);
+}
+
+.badge[data-tone='error'] svg {
+  color: var(--color-error);
+}
+
+/* Callouts: messages inside a card, with an icon that names the tone. */
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-inset);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.callout > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+}
+
+.callout[data-tone='info'] {
+  background: var(--color-info-soft);
+}
+
+.callout[data-tone='info'] > svg {
+  color: var(--color-info);
+}
+
+.callout[data-tone='success'] {
+  background: var(--color-success-soft);
+}
+
+.callout[data-tone='success'] > svg {
+  color: var(--color-success);
+}
+
+.callout[data-tone='warning'] {
+  background: var(--color-warning-soft);
+}
+
+.callout[data-tone='warning'] > svg {
+  color: var(--color-warning);
+}
+
+.callout[data-tone='error'] {
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.callout[data-tone='error'] > svg {
+  color: var(--color-error);
+}
+
+/* Fields: 10px corners, a border that meets 3:1, and the shared focus ring. */
+.input {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-field-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--duration) var(--ease-standard),
+    box-shadow var(--duration) var(--ease-standard);
+}
+
+.input:hover {
+  border-color: var(--color-text-muted);
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-error);
+  box-shadow: inset 0 0 0 1px var(--color-error);
+}
+
+/* Selects draw their own chevron (an icon in .select-wrap), so it matches the theme. */
+.select-wrap {
+  position: relative;
+  display: block;
+}
+
+.select-wrap > select {
+  appearance: none;
+  padding-right: var(--space-10);
+  cursor: pointer;
+}
+
+.select-wrap > svg {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .spin {
@@ -510,7 +701,7 @@ ol {
   }
 }
 
-/* Touch screens have no real hover, so a tapped control must not stay raised. */
+/* Touch screens have no real hover, so a tapped card must not stay raised. */
 @media (hover: none) {
   :root {
     --hover-lift: 0px;
@@ -521,13 +712,24 @@ ol {
   :root {
     --gutter: 24px;
   }
+
+  /* The header stays pinned from tablet width up, so jumps land below it. */
+  html {
+    scroll-padding-top: calc(var(--header-height) + var(--space-4));
+    scroll-padding-bottom: var(--space-4);
+  }
 }
 
-/* Reduced motion: no movement and no transitions. Pressed states still show, instantly. */
+@media (min-width: 1280px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+/* Reduced motion: no movement and no transitions. Pressed and hover colours still show, instantly. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --hover-lift: 0px;
-    --press-shift: 0px;
     --press-scale: 1;
   }
 

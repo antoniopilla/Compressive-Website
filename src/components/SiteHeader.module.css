@@ -1,6 +1,6 @@
-/* A cream pill bar floating over the ground colour. */
+/* A slim bar in the page colour; from tablet width up it stays pinned and frosted. */
 .header {
-  padding: var(--space-3) var(--gutter) 0;
+  border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
 }
 
@@ -8,52 +8,29 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  max-width: calc(var(--content-max) - 2 * var(--gutter));
-  min-height: calc(var(--header-height) - 2 * var(--space-3));
+  max-width: var(--content-max);
+  min-height: var(--header-height);
   margin: 0 auto;
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
-  border-radius: var(--dp-radius-control);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-surface);
+  padding: var(--space-2) var(--gutter);
 }
 
+/* The name alone, set as a wordmark. */
 .brand {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-3);
   min-height: var(--control-height);
-  border-radius: var(--dp-radius-control);
+  border-radius: var(--radius-sm);
   color: var(--color-text);
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
-  text-decoration: none;
+  letter-spacing: var(--tracking-heading);
+  white-space: nowrap;
 }
 
 .brand:hover {
   color: var(--color-text);
-}
-
-.mark {
-  flex: none;
-  width: var(--space-10);
-  height: var(--space-10);
-  border-radius: var(--radius-sm);
-  background: var(--dp-color-accent);
-  box-shadow: var(--shadow-control);
-}
-
-.markArrows {
-  fill: none;
-  stroke: var(--color-text);
-  stroke-width: 2.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.name {
-  white-space: nowrap;
-  letter-spacing: var(--tracking-heading);
+  text-decoration: none;
 }
 
 /* Main navigation: shown from tablet width up; phones use the bottom bar. */
@@ -74,81 +51,80 @@
   align-items: center;
   min-height: var(--control-height);
   padding: 0 var(--space-4);
-  border-radius: var(--dp-radius-control);
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: var(--weight-medium);
   transition:
-    background-color var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out),
-    color var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    color var(--duration) var(--ease-standard);
 }
 
 .navLink:hover {
   background: var(--color-hover);
   color: var(--color-text);
+  text-decoration: none;
 }
 
-/* The current section is pressed into the bar. */
+/* The current section: a filled pill and darker, heavier text, so colour is never the only cue. */
 .navLink[aria-current] {
-  background: var(--dp-color-accent);
-  box-shadow: var(--shadow-pressed);
+  background: var(--color-surface-2);
   color: var(--color-text);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
 }
 
+/* The theme switch: a segmented control with a raised thumb on the chosen option. */
 .theme {
   display: inline-flex;
   flex: none;
-  gap: var(--space-1);
+  gap: 2px;
   margin: 0 0 0 auto;
-  padding: var(--space-1);
+  padding: 2px;
   border: 0;
-  border-radius: var(--dp-radius-control);
+  border-radius: var(--radius-pill);
   background: var(--color-surface-2);
-  box-shadow: var(--shadow-well);
 }
 
 .themeOption {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: 6px;
   min-width: var(--control-height);
   min-height: var(--control-height);
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--dp-radius-control);
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-medium);
   cursor: pointer;
   transition:
-    background-color var(--dp-motion-interaction) var(--ease-out),
-    box-shadow var(--dp-motion-interaction) var(--ease-out),
-    color var(--dp-motion-interaction) var(--ease-out);
+    background-color var(--duration) var(--ease-standard),
+    box-shadow var(--duration) var(--ease-standard),
+    color var(--duration) var(--ease-standard);
 }
 
 .themeOption:hover {
   color: var(--color-text);
 }
 
-/* The chosen theme rises out of the recessed track. */
 .themeOption[data-checked] {
-  background: var(--dp-color-surface-compare);
-  box-shadow: var(--shadow-control);
+  background: var(--color-thumb);
+  box-shadow: var(--shadow-thumb);
   color: var(--color-text);
+  font-weight: var(--weight-semibold);
 }
 
 .themeOption:has(input:focus-visible) {
-  outline: var(--dp-border-focus-width) solid var(--color-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 /* Browsers without :has() (such as Firefox before 121) still get a visible focus ring. */
 @supports not selector(:has(*)) {
   .themeOption:focus-within {
-    outline: var(--dp-border-focus-width) solid var(--color-focus);
-    outline-offset: 2px;
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
   }
 }
 
@@ -156,30 +132,23 @@
   display: none;
 }
 
-/* The smallest phones: tighter padding and a smaller brand keep 44px theme targets in the bar. */
+/* The smallest phones: a tighter bar keeps 44px theme targets beside the name. */
 @media (max-width: 359px) {
-  .header {
-    padding: var(--space-2) var(--space-2) 0;
-  }
-
   .inner {
     gap: var(--space-2);
-    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+    padding-inline: var(--space-3);
   }
 
   .brand {
-    gap: var(--space-2);
     font-size: var(--text-md);
-  }
-
-  .mark {
-    width: var(--space-8);
-    height: var(--space-8);
   }
 
   .theme {
     gap: 0;
-    padding: 2px;
+  }
+
+  .themeOption {
+    padding-inline: var(--space-2);
   }
 }
 
@@ -187,8 +156,15 @@
   .header {
     position: sticky;
     top: 0;
-    z-index: 10;
-    padding-bottom: var(--space-3);
+    z-index: 20;
+  }
+
+  @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .header {
+      background: var(--color-bar);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
   }
 
   .inner {

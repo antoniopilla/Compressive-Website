@@ -70,7 +70,9 @@ export default function DropZone({ onFiles, disabled = false, hasFiles = false }
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <UploadCloud className={styles.icon} size={hasFiles ? 26 : 36} aria-hidden="true" />
+      <span className={styles.icon} aria-hidden="true">
+        <UploadCloud size={hasFiles ? 20 : 24} />
+      </span>
       <div className={styles.text}>
         <p className={styles.title}>{active ? 'Drop to add these files' : hasFiles ? 'Add more files' : 'Drop files here'}</p>
         <p className={styles.hint} id="drop-zone-hint">
@@ -79,7 +81,8 @@ export default function DropZone({ onFiles, disabled = false, hasFiles = false }
       </div>
       <button
         type="button"
-        className="btn btn-primary"
+        // Once files are in, compressing them is the main action, so adding more steps back.
+        className={`${hasFiles ? 'btn btn-secondary' : 'btn btn-primary'} ${styles.button}`}
         onClick={() => inputRef.current?.click()}
         disabled={disabled}
         aria-describedby="drop-zone-hint"

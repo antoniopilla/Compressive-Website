@@ -1,4 +1,4 @@
-import { ArrowLeftRight, CircleAlert, CircleCheck } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, CircleAlert, CircleCheck, Info } from 'lucide-react';
 import { describePrintSize, fromInches, resolvePrintSize, RESOLUTION_POLICY, toInches, UNITS } from '../engine/index.js';
 import styles from './PrintSizeForm.module.css';
 
@@ -57,6 +57,7 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
           <label htmlFor="print-width">Width ({unitShort})</label>
           <input
             id="print-width"
+            className="input"
             type="number"
             inputMode="decimal"
             min="0"
@@ -79,6 +80,7 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
           <label htmlFor="print-height">Height ({unitShort})</label>
           <input
             id="print-height"
+            className="input"
             type="number"
             inputMode="decimal"
             min="0"
@@ -96,13 +98,16 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
         </div>
         <div className={styles.field}>
           <label htmlFor="print-unit">Unit</label>
-          <select id="print-unit" value={printSize.unit} onChange={(event) => changeUnit(event.target.value)}>
-            {Object.entries(UNITS).map(([value, unit]) => (
-              <option key={value} value={value}>
-                {unit.label}
-              </option>
-            ))}
-          </select>
+          <span className="select-wrap">
+            <select id="print-unit" className="input" value={printSize.unit} onChange={(event) => changeUnit(event.target.value)}>
+              {Object.entries(UNITS).map(([value, unit]) => (
+                <option key={value} value={value}>
+                  {unit.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={18} aria-hidden="true" />
+          </span>
         </div>
       </div>
 
@@ -116,7 +121,7 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
       </p>
 
       <div className={styles.presets} role="group" aria-label="Common print sizes">
-        <span className={styles.presetsLabel}>Common sizes:</span>
+        <span className={styles.presetsLabel}>Common sizes</span>
         {PRESETS.map((preset) => (
           <button key={preset.name} type="button" className={styles.preset} onClick={() => applyPreset(preset)}>
             {preset.name}{' '}
@@ -127,11 +132,14 @@ export default function PrintSizeForm({ printSize, errors, onChange, onUnitPrefe
         ))}
       </div>
 
-      <p className={styles.policy}>
-        <strong>How sharp is sharp?</strong> {RESOLUTION_POLICY.targetPpi} pixels per inch (PPI) or more looks crisp up
-        close. Below {RESOLUTION_POLICY.warningBelowPpi} PPI you get a warning, and below{' '}
-        {RESOLUTION_POLICY.criticalBelowPpi} PPI a stronger one. Large prints seen from a distance can get by with less, so
-        check with your print shop.
+      <p className={`callout ${styles.policy}`}>
+        <Info size={18} aria-hidden="true" />
+        <span>
+          <strong>How sharp is sharp?</strong> {RESOLUTION_POLICY.targetPpi} pixels per inch (PPI) or more looks crisp up
+          close. Below {RESOLUTION_POLICY.warningBelowPpi} PPI you get a warning, and below{' '}
+          {RESOLUTION_POLICY.criticalBelowPpi} PPI a stronger one. Large prints seen from a distance can get by with less,
+          so check with your print shop.
+        </span>
       </p>
     </div>
   );

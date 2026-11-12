@@ -1,4 +1,5 @@
 import { EyeOff, HardDrive, RefreshCcw, UserX } from 'lucide-react';
+import SectionHeader from './SectionHeader.jsx';
 import styles from './PrivacySection.module.css';
 
 const POINTS = [
@@ -8,20 +9,18 @@ const POINTS = [
   { Icon: RefreshCcw, text: 'Refreshing or closing the page clears everything.' },
 ];
 
-/** Privacy: how files are handled. The page's closing pink cushion. */
+/** Privacy: how files are handled, the page's closing section. */
 export default function PrivacySection() {
   return (
     <section id="privacy" className={styles.privacy} aria-labelledby="privacy-title">
-      <h2 id="privacy-title" className={styles.title}>
-        Privacy
-      </h2>
-      <ul className={styles.points}>
+      <SectionHeader titleId="privacy-title" title="Privacy" />
+      <ul className={`card ${styles.points}`}>
         {POINTS.map(({ Icon, text }) => (
           <li key={text} className={styles.point}>
-            <span className={styles.icon} aria-hidden="true">
+            <span className="icon-tile" aria-hidden="true">
               <Icon size={20} />
             </span>
-            <span>{text}</span>
+            <span className={styles.text}>{text}</span>
           </li>
         ))}
       </ul>

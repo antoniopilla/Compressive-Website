@@ -1,5 +1,6 @@
-import { Archive, FileImage, FileText, Image, Layers } from 'lucide-react';
+import { Archive, FileImage, FileText, Gauge, Image, Layers } from 'lucide-react';
 import { formatBytes, formatNumber, IMAGE_POLICY, LIMITS } from '../engine/index.js';
+import SectionHeader from './SectionHeader.jsx';
 import styles from './InfoSection.module.css';
 
 const ROWS = [
@@ -30,24 +31,20 @@ const ROWS = [
   },
 ];
 
-/** "How it works": what happens to each file type, one shelf per type, and the limits. */
+/** "How it works": what happens to each file type, one row per type, and the limits. */
 export default function InfoSection() {
   return (
     <section id="how-it-works" className={styles.info} aria-labelledby="info-title">
-      <div className={styles.heading}>
-        <h2 id="info-title" className={styles.title}>
-          What Compressive does with each file
-        </h2>
-        <p className={styles.lead}>
-          Smaller files where that is safe, your original where it is not. Whenever compressing would not help, or could
-          change how something looks, you get your original back and the reason why.
-        </p>
-      </div>
-      <ul className={styles.rows}>
+      <SectionHeader
+        titleId="info-title"
+        title="What Compressive does with each file"
+        lead="Smaller files where that is safe, your original where it is not. Whenever compressing would not help, or could change how something looks, you get your original back and the reason why."
+      />
+      <ul className={`card ${styles.rows}`}>
         {ROWS.map(({ formats, Icon, what }) => (
           <li key={formats} className={styles.row}>
             <div className={styles.identity}>
-              <span className={styles.rowIcon} aria-hidden="true">
+              <span className="icon-tile" aria-hidden="true">
                 <Icon size={20} />
               </span>
               <h3 className={styles.rowTitle}>{formats}</h3>
@@ -57,8 +54,13 @@ export default function InfoSection() {
         ))}
       </ul>
 
-      <div id="limits" className={styles.block}>
-        <h3 className={styles.blockTitle}>Limits</h3>
+      <div id="limits" className={`card ${styles.block}`}>
+        <div className={styles.blockHeader}>
+          <span className="icon-tile" data-tone="neutral" aria-hidden="true">
+            <Gauge size={20} />
+          </span>
+          <h3 className={styles.blockTitle}>Limits</h3>
+        </div>
         <ul className={styles.list}>
           <li>Up to {LIMITS.maxFiles} files at once, and up to {formatBytes(LIMITS.maxZipInputBytes)} in one ZIP.</li>
           <li>

@@ -1,0 +1,76 @@
+/* A centred card with 28px corners over a dimmed page. */
+.dialog {
+  width: min(28rem, calc(100vw - 2 * var(--gutter)));
+  max-height: calc(100dvh - 2 * var(--gutter));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+  color: var(--color-text);
+}
+
+/* The fallback covers browsers whose ::backdrop does not inherit the theme's custom properties. */
+.dialog::backdrop {
+  background: var(--color-backdrop, rgb(0 0 0 / 0.45));
+}
+
+.dialog[open] {
+  animation: dialog-in var(--duration) var(--ease-out);
+}
+
+.dialog[open]::backdrop {
+  animation: backdrop-in var(--duration) var(--ease-standard);
+}
+
+.content {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.title {
+  margin-top: var(--space-1);
+  font-size: var(--text-xl);
+}
+
+.description {
+  color: var(--color-text-muted);
+}
+
+/* The safe choice first; on wide screens both sit at the end, the confirming one last. */
+.actions {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+/* Phones: full-width buttons, the confirming one on top. */
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}

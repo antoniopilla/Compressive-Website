@@ -1,8 +1,8 @@
-/* A disclosure: a smaller cream cushion with a recessed plus/minus. */
+/* A disclosure row with a hairline edge; the chevron turns when it opens. */
 .printCheck {
-  border-radius: var(--dp-radius-disclosure);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-control);
 }
 
 .toggle {
@@ -10,47 +10,52 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: var(--control-height-lg);
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
   border: 0;
-  border-radius: var(--dp-radius-disclosure);
+  border-radius: calc(var(--radius-md) - 1px);
   background: transparent;
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--dp-motion-interaction) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--duration) var(--ease-standard);
 }
 
 .toggle:hover {
   background: var(--color-hover);
 }
 
-.icon {
-  flex: none;
+.printCheck[data-open] .toggle {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .label {
   flex: 1;
   min-width: 0;
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
 }
 
 .labelHint {
+  display: block;
   color: var(--color-text-muted);
-  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
 }
 
-.sign {
+.chevron {
   flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: var(--space-10);
-  height: var(--space-10);
-  border-radius: 50%;
-  background: var(--color-surface-2);
-  box-shadow: var(--shadow-well);
+  color: var(--color-text-muted);
+  transition: transform var(--duration) var(--ease-standard);
+}
+
+.printCheck[data-open] .chevron {
+  transform: rotate(180deg);
 }
 
 .body {
-  padding: var(--space-1) var(--space-5) var(--space-5);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }

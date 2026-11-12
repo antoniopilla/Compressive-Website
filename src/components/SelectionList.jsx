@@ -70,7 +70,7 @@ function FileRow({ entry, health, disabled, onRemove, onReplace }) {
 
   return (
     <li className={styles.row} data-invalid={invalid || undefined} data-category={entry.category ?? 'unknown'}>
-      <span className={styles.icon}>
+      <span className={`icon-tile ${styles.icon}`} data-tone={invalid ? 'error' : 'neutral'}>
         <FileIcon category={entry.category} />
       </span>
       <div className={styles.main}>
@@ -83,11 +83,11 @@ function FileRow({ entry, health, disabled, onRemove, onReplace }) {
         <div className={styles.status}>
           {entry.pending ? (
             <p className={styles.pending}>
-              <LoaderCircle size={14} className="spin" aria-hidden="true" /> Checking this file…
+              <LoaderCircle size={16} className="spin" aria-hidden="true" /> Checking this file…
             </p>
           ) : invalid ? (
             <p className={styles.error}>
-              <CircleAlert size={15} aria-hidden="true" />
+              <CircleAlert size={16} aria-hidden="true" />
               <span>{entry.validation.message}</span>
             </p>
           ) : (
@@ -116,7 +116,7 @@ function FileRow({ entry, health, disabled, onRemove, onReplace }) {
           aria-label={`Replace ${entry.name}`}
           title="Replace"
         >
-          <RefreshCw size={17} aria-hidden="true" />
+          <RefreshCw size={18} aria-hidden="true" />
         </button>
         <button
           type="button"
